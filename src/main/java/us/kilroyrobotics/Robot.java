@@ -5,21 +5,27 @@
 package us.kilroyrobotics;
 
 import com.ctre.phoenix6.Utils;
+import edu.wpi.first.epilogue.Epilogue;
+import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import us.kilroyrobotics.Constants.ElevatorConstants;
+import us.kilroyrobotics.Constants.VisionConstants;
 import us.kilroyrobotics.util.LimelightHelpers;
 
+@Logged
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
+    @Logged(name = "RobotContainer")
     private final RobotContainer m_robotContainer;
-
-    private final boolean kUseLimelight = false;
 
     public Robot() {
         m_robotContainer = new RobotContainer();
+
+        Epilogue.bind(this);
     }
 
     @Override
@@ -38,7 +44,7 @@ public class Robot extends TimedRobot {
          * of how to use vision should be tuned per-robot and to the team's
          * specification.
          */
-        if (kUseLimelight) {
+        if (VisionConstants.kUseLimelight) {
             var driveState = m_robotContainer.drivetrain.getState();
             double headingDeg = driveState.Pose.getRotation().getDegrees();
             double omegaRps = Units.radiansToRotations(driveState.Speeds.omegaRadiansPerSecond);
@@ -96,11 +102,15 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void testPeriodic() {}
+    public void testPeriodic() {
+        m_robotContainer.elevator.setPosition(ElevatorConstants.kCoralStationHeight);
+    }
 
     @Override
     public void testExit() {}
 
     @Override
-    public void simulationPeriodic() {}
+    public void simulationPeriodic() {
+        m_robotContainer.elevator.simulationPeriodic();
+    }
 }
