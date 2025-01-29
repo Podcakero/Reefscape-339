@@ -89,7 +89,7 @@ public class Wrist extends SubsystemBase {
         this.m_pidController.setReference(angle.in(Radians), ControlType.kPosition);
     }
 
-    public void set(double speed) {
+    public void setSpeed(double speed) {
         this.m_wristMotor.set(speed);
     }
 
