@@ -175,8 +175,8 @@ public final class Constants {
 
         public static final int kAlgaeMotorFollowerId = 46;
 
-        public static final double kAlgaeSpeedIntaking = 0.75;
-        public static final double kAlgaeSpeedOuttaking = -0.75;
+        public static final double kAlgaeSpeedIntaking = 0.25;
+        public static final double kAlgaeSpeedOuttaking = -0.25;
     }
 
     public static final class CameraConstants {
