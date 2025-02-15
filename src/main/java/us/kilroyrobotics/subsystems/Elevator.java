@@ -15,6 +15,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -55,12 +56,15 @@ public class Elevator extends SubsystemBase {
                         ElevatorConstants.kP,
                         ElevatorConstants.kI,
                         ElevatorConstants.kD,
-                        ElevatorConstants.kF);
+                        ElevatorConstants.kF)
+                .outputRange(-1, 1);
+        leadMotorConfig.idleMode(IdleMode.kBrake);
         leadMotorConfig.smartCurrentLimit(40);
         leadMotorConfig.encoder.positionConversionFactor(
                 ElevatorConstants.kEncoderPositionConversionFactor);
 
         SparkMaxConfig followerMotorConfig = new SparkMaxConfig();
+        followerMotorConfig.idleMode(IdleMode.kBrake);
         followerMotorConfig.smartCurrentLimit(40);
         followerMotorConfig.follow(this.m_leadMotor, true);
 
@@ -86,12 +90,16 @@ public class Elevator extends SubsystemBase {
                         SimulationConstants.kElevatorStartingHeight.magnitude());
     }
 
+    public double getVelocity() {
+        return this.m_leadMotor.getAppliedOutput();
+    }
+
     public void setPosition(Distance distance) {
         this.m_pidController.setReference(distance.in(Meters), ControlType.kPosition);
     }
 
-    public void resetPosition() {
-        m_encoder.setPosition(0);
+    public void resetEncoder() {
+        m_encoder.setPosition(ElevatorConstants.kZeroed.in(Meters));
     }
 
     public void set(double speed) {
@@ -115,6 +123,10 @@ public class Elevator extends SubsystemBase {
     @Logged(name = "CarriagePose")
     public Pose3d getCarriagePose() {
         return new Pose3d(0, 0, this.m_encoder.getPosition(), new Rotation3d());
+    }
+
+    public Distance getPosition() {
+        return Meters.of(this.m_encoder.getPosition());
     }
 
     @Override
