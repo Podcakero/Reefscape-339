@@ -17,12 +17,13 @@ public final class Constants {
      * from {@link us.kilroyrobotics.generated.TunerConstants TunerConstants}
      */
     public static final class DriveConstants {
-        public static final LinearVelocity kLowDriveSpeed = MetersPerSecond.of(0.5);
+        public static final LinearVelocity kLowDriveSpeed = MetersPerSecond.of(0.25);
+        public static final LinearVelocity kTeleopMaxSpeed = MetersPerSecond.of(0.5);
     }
 
     /** Constants used for interfacing with limelight vision */
     public static final class VisionConstants {
-        public static final boolean kUseLimelight = false;
+        public static final boolean kUseLimelight = true;
     }
 
     /** Constants used for interfacing with the elevator subsystem */
@@ -42,10 +43,10 @@ public final class Constants {
 
         /** Height necessary for the coral intake to reach Level 2 of Reef in Meters */
         // 47.5
-        public static final Distance kL2Height = Meters.of(Inches.of(31.6875).in(Meters));
+        public static final Distance kL2Height = Meters.of(Inches.of(40.5).in(Meters));
 
         /** Height necessary for the coral intake to reach Level 3 of Reef in Meters */
-        public static final Distance kL3Height = Meters.of(Inches.of(43.6875).in(Meters));
+        public static final Distance kL3Height = Meters.of(Inches.of(55.5).in(Meters));
 
         /** Height necessary for the coral intake to reach Level 4 of Reef in Meters */
         public static final Distance kL4Height = Meters.of(Inches.of(68).in(Meters));
@@ -54,7 +55,7 @@ public final class Constants {
         public static final Distance kCoralStationHeight = Meters.of(Inches.of(31.6875).in(Meters));
 
         /* PIDF constants */
-        public static final double kP = 2.0;
+        public static final double kP = 1.5;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
         public static final double kF = 0.0;
@@ -83,6 +84,10 @@ public final class Constants {
          */
         public static final double kSecondStagePositionConversionFactor =
                 (1.0 + (Inches.of(26.0).in(Meters) / Inches.of(34.5).in(Meters)));
+
+        public static final double kOverrideSpeedMultiplier = 0.25;
+
+        public static final Distance kHeightLimit = Inches.of(50);
     }
 
     /** Constants used during Simulation */
@@ -149,20 +154,22 @@ public final class Constants {
         public static final Angle kScoringL1 = Degrees.of(100);
 
         /* PIDF constants */
-        public static final double kP = 5.0;
+        public static final double kP = 1.5;
         public static final double kI = 0.0;
-        public static final double kD = 0.0;
+        public static final double kD = 0.05;
         public static final double kF = 0.0;
 
         /* Wheel Speeds */
         /** Speed of the motor when intaking a coral piece */
-        public static final double kWheelSpeedIntaking = 0.75;
+        public static final double kWheelSpeedIntaking = -0.1;
 
         /** Speed of the motor when scoring a coral piece */
-        public static final double kWheelSpeedOuttaking = -0.75;
+        public static final double kWheelSpeedOuttaking = 0.1;
 
         /** Speed of the motor while the robot is in motion to keep the coral piece in place */
-        public static final double kWheelSpeedHolding = 0.15;
+        public static final double kWheelSpeedHolding = -0.05;
+
+        public static final double kOverrideSpeedMultiplier = 0.25;
     }
 
     public static final class AlgaeConstants {

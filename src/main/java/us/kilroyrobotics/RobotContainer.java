@@ -24,8 +24,8 @@ import us.kilroyrobotics.Constants.CoralMechanismConstants;
 import us.kilroyrobotics.Constants.DriveConstants;
 import us.kilroyrobotics.Constants.ElevatorConstants;
 import us.kilroyrobotics.generated.TunerConstants;
-import us.kilroyrobotics.subsystems.AlgaeIntake;
-import us.kilroyrobotics.subsystems.AlgaeIntake.AlgaeState;
+// import us.kilroyrobotics.subsystems.AlgaeIntake;
+// import us.kilroyrobotics.subsystems.AlgaeIntake.AlgaeState;
 import us.kilroyrobotics.subsystems.Camera;
 import us.kilroyrobotics.subsystems.CommandSwerveDrivetrain;
 import us.kilroyrobotics.subsystems.CoralIntakeMotor;
@@ -34,16 +34,14 @@ import us.kilroyrobotics.subsystems.Elevator;
 import us.kilroyrobotics.subsystems.Wrist;
 
 public class RobotContainer {
-    private double kMaxSpeed =
-            TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double kMaxAngularRate =
-            RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
+            RotationsPerSecond.of(0.25).in(RadiansPerSecond); // 1/4 of a rotation per second
     // max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive =
             new SwerveRequest.FieldCentric()
-                    .withDeadband(kMaxSpeed * 0.1)
+                    .withDeadband(DriveConstants.kTeleopMaxSpeed.in(MetersPerSecond) * 0.1)
                     .withRotationalDeadband(kMaxAngularRate * 0.1) // Add a 10% deadband
                     .withDriveRequestType(
                             DriveRequestType
@@ -53,7 +51,8 @@ public class RobotContainer {
     private final SwerveRequest.RobotCentric forwardStraight =
             new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-    private final Telemetry logger = new Telemetry(kMaxSpeed);
+    private final Telemetry logger =
+            new Telemetry(DriveConstants.kTeleopMaxSpeed.in(MetersPerSecond));
 
     /* Controllers */
     private final CommandXboxController driverController = new CommandXboxController(0);
@@ -63,14 +62,16 @@ public class RobotContainer {
     /* Subsystems */
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final CoralIntakeMotor coralIntakeMotor = new CoralIntakeMotor();
-    private final AlgaeIntake algaeIntake = new AlgaeIntake();
+
+    //     private final AlgaeIntake algaeIntake = new AlgaeIntake();
+    @SuppressWarnings("unused")
     private final Camera camera = new Camera();
 
     @Logged(name = "Elevator")
     public final Elevator elevator = new Elevator();
 
     @Logged(name = "Wrist")
-    public final Wrist wrist = new Wrist(elevator::getCarriagePose, false);
+    public final Wrist wrist = new Wrist(elevator::getCarriagePose, true);
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -133,43 +134,52 @@ public class RobotContainer {
             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kIntakingAngle), wrist);
 
     private Command wristStop() {
-        return new InstantCommand(() -> wrist.stop(), wrist);
+        return new InstantCommand(
+                () -> {
+                    wrist.setAngle(wrist.getAngle());
+                    wrist.stop();
+                },
+                wrist);
     }
 
     private Command wristSetL1AndStop =
             Commands.sequence(
                     wristSetL1,
                     waitToSlowDown(wrist::getVelocity, 0.1),
-                    wristStop(),
+                    //     wristStop(),
                     setCoralOuttaking());
     private Command wristSetL2AndStop =
             Commands.sequence(
                     wristSetL2,
                     waitToSlowDown(wrist::getVelocity, 0.1),
-                    wristStop(),
+                    //     wristStop(),
                     setCoralOuttaking());
     private Command wristSetL3AndStop =
             Commands.sequence(
                     wristSetL3,
                     waitToSlowDown(wrist::getVelocity, 0.1),
-                    wristStop(),
+                    //     wristStop(),
                     setCoralOuttaking());
     private Command wristSetL4AndStop =
             Commands.sequence(
                     wristSetL4,
                     waitToSlowDown(wrist::getVelocity, 0.1),
-                    wristStop(),
+                    //     wristStop(),
                     setCoralOuttaking());
     private Command wristSetCoralStationAndStop =
             Commands.sequence(
                     wristSetCoralStation,
                     waitToSlowDown(wrist::getVelocity, 0.1),
-                    wristStop(),
+                    //     wristStop(),
                     setCoralIntaking());
 
     /* Preset Commands */
     private Command elevatorStop =
-            Commands.run(() -> elevator.setPosition(elevator.getPosition()), elevator);
+            Commands.runOnce(
+                    () -> {
+                        elevator.setPosition(elevator.getPosition());
+                    },
+                    elevator);
 
     //     private Command coralIntakeSetL1 =
     //             Commands.sequence(
@@ -187,12 +197,14 @@ public class RobotContainer {
     //             Commands.sequence(elevatorSetCoralStation, wristSetCoralStation);
 
     /* Algae Intake Commands */
-    private Command setAlgaeIntaking =
-            Commands.runOnce(() -> algaeIntake.setAlgaeState(AlgaeState.INTAKING), algaeIntake);
-    private Command setAlgaeOuttaking =
-            Commands.runOnce(() -> algaeIntake.setAlgaeState(AlgaeState.OUTTAKING), algaeIntake);
-    private Command setAlgaeOff =
-            Commands.runOnce(() -> algaeIntake.setAlgaeState(AlgaeState.OFF), algaeIntake);
+    //     private Command setAlgaeIntaking =
+    //             Commands.runOnce(() -> algaeIntake.setAlgaeState(AlgaeState.INTAKING),
+    // algaeIntake);
+    //     private Command setAlgaeOuttaking =
+    //             Commands.runOnce(() -> algaeIntake.setAlgaeState(AlgaeState.OUTTAKING),
+    // algaeIntake);
+    //     private Command setAlgaeOff =
+    //             Commands.runOnce(() -> algaeIntake.setAlgaeState(AlgaeState.OFF), algaeIntake);
 
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
@@ -203,12 +215,15 @@ public class RobotContainer {
                         () ->
                                 drive.withVelocityX(
                                                 -driverController.getLeftY()
-                                                        * kMaxSpeed) // Drive forward with
+                                                        * DriveConstants.kTeleopMaxSpeed.in(
+                                                                MetersPerSecond)) // Drive forward
+                                        // with
                                         // negative Y
                                         // (forward)
                                         .withVelocityY(
                                                 -driverController.getLeftX()
-                                                        * kMaxSpeed) // Drive left with
+                                                        * DriveConstants.kTeleopMaxSpeed.in(
+                                                                MetersPerSecond)) // Drive left with
                                         // negative X
                                         // (left)
                                         .withRotationalRate(
@@ -290,39 +305,50 @@ public class RobotContainer {
                 .onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // Coral Intake Motor Controls
-        leftOperatorJoystick.button(3).onTrue(setCoralIntaking()).onFalse(genCoralHoldingCommand());
-        leftOperatorJoystick.button(2).onTrue(setCoralOuttaking()).onFalse(genCoralOffCommand());
+        leftOperatorJoystick.button(2).onTrue(setCoralIntaking()).onFalse(genCoralHoldingCommand());
+        leftOperatorJoystick.button(3).onTrue(setCoralOuttaking()).onFalse(genCoralOffCommand());
 
         // Wrist Control
         leftOperatorJoystick.button(10).onTrue(wristSetL1AndStop);
         leftOperatorJoystick.button(7).onTrue(wristSetL2AndStop);
         leftOperatorJoystick.button(11).onTrue(wristSetL3AndStop);
-        leftOperatorJoystick.button(6).onTrue(wristSetL4AndStop);
+        // leftOperatorJoystick.button(6).onTrue(wristSetL4AndStop);
         leftOperatorJoystick.button(8).onTrue(wristSetCoralStationAndStop);
         leftOperatorJoystick
                 .button(1)
                 .whileTrue(
                         Commands.run(
-                                () -> wrist.setSpeed(leftOperatorJoystick.getY() * 0.25), wrist));
+                                () ->
+                                        wrist.setSpeed(
+                                                leftOperatorJoystick.getY()
+                                                        * CoralMechanismConstants
+                                                                .kOverrideSpeedMultiplier),
+                                wrist))
+                .onFalse(wristStop());
 
         // Elevator Controls
         rightOperatorJoystick.button(10).onTrue(elevatorSetL1);
         rightOperatorJoystick.button(7).onTrue(elevatorSetL2);
         rightOperatorJoystick.button(11).onTrue(elevatorSetL3);
-        rightOperatorJoystick.button(6).onTrue(elevatorSetL4);
+        // rightOperatorJoystick.button(6).onTrue(elevatorSetL4);
         rightOperatorJoystick.button(8).onTrue(elevatorSetCoralStation);
         rightOperatorJoystick
                 .button(1)
                 .whileTrue(
                         Commands.run(
-                                () -> elevator.set(rightOperatorJoystick.getY() * 0.25), elevator))
+                                () ->
+                                        elevator.setSpeed(
+                                                rightOperatorJoystick.getY()
+                                                        * ElevatorConstants
+                                                                .kOverrideSpeedMultiplier),
+                                elevator))
                 .onFalse(elevatorStop);
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // Algae Controls
-        rightOperatorJoystick.button(3).onTrue(setAlgaeIntaking).onFalse(setAlgaeOff);
-        rightOperatorJoystick.button(2).onTrue(setAlgaeOuttaking).onFalse(setAlgaeOff);
+        // rightOperatorJoystick.button(3).onTrue(setAlgaeIntaking).onFalse(setAlgaeOff);
+        // rightOperatorJoystick.button(2).onTrue(setAlgaeOuttaking).onFalse(setAlgaeOff);
     }
 
     public Command getAutonomousCommand() {
