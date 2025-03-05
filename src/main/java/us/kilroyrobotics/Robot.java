@@ -34,6 +34,10 @@ public class Robot extends TimedRobot {
         m_robotContainer.elevator.resetEncoder();
 
         Epilogue.bind(this);
+
+        SmartDashboard.putNumber("AutoDelay", 0.0);
+        SmartDashboard.putBoolean("DefenseModeOn", false);
+        SmartDashboard.putBoolean("TeleopAlignIndicator", false);
     }
 
     @Override
@@ -81,6 +85,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
+        Shuffleboard.startRecording();
         Shuffleboard.selectTab("Autonomous");
 
         Command autoDelayCommand = new WaitCommand(SmartDashboard.getNumber("AutoDelay", 0.0));
@@ -113,7 +118,9 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {}
 
     @Override
-    public void teleopExit() {}
+    public void teleopExit() {
+        Shuffleboard.stopRecording();
+    }
 
     @Override
     public void testInit() {
