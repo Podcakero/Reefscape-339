@@ -38,6 +38,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("AutoDelay", 0.0);
         SmartDashboard.putBoolean("DefenseModeOn", false);
         SmartDashboard.putBoolean("TeleopAlignIndicator", false);
+        SmartDashboard.putBoolean("CoralDetected", false);
     }
 
     @Override

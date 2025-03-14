@@ -292,7 +292,7 @@ public final class Constants {
         public static final double kWheelSpeedOuttaking = 0.2;
 
         /** Speed of the motor while the robot is in motion to keep the coral piece in place */
-        public static final double kWheelSpeedHolding = -0.20;
+        public static final double kWheelSpeedHolding = -0.0;
 
         public static final double kOverrideSpeedMultiplier = 0.25;
     }

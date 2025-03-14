@@ -79,7 +79,6 @@ public class RobotContainer {
     /* Subsystems */
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    @Logged(name = "CoralIntakeMotor")
     private final CoralIntakeMotor coralIntakeMotor = new CoralIntakeMotor();
 
     @Logged(name = "Elevator")
@@ -497,17 +496,19 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        new Trigger(this.coralIntakeMotor.getCoralSensor()::get)
+        new Trigger(this.coralIntakeMotor::isCoralDetected)
                 .onTrue(
-                        Commands.runOnce(
+                        Commands.run(
                                 () -> {
                                     this.leds.setMode(LEDMode.CoralGrabbed);
+                                    SmartDashboard.putBoolean("CoralDetected", true);
                                 },
                                 leds))
                 .onFalse(
-                        Commands.runOnce(
+                        Commands.run(
                                 () -> {
                                     this.leds.setMode(LEDMode.Default);
+                                    SmartDashboard.putBoolean("CoralDetected", false);
                                 },
                                 leds));
     }
