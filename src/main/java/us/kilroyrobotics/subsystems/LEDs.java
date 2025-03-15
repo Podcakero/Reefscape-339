@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LEDs extends SubsystemBase {
     private AddressableLED led = new AddressableLED(0);
-    private AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(100);
+    private AddressableLEDBuffer ledBuffer = new AddressableLEDBuffer(38);
     private Distance ledSpacing = Meters.of(5.0 / 300);
 
     private LEDPattern rainbow =
