@@ -87,7 +87,7 @@ public class RobotContainer {
     @Logged(name = "Wrist")
     public final Wrist wrist = new Wrist(elevator::getCarriagePose, Robot.isReal());
 
-    private final LEDs leds = new LEDs();
+    public final LEDs leds = new LEDs();
 
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
@@ -265,7 +265,7 @@ public class RobotContainer {
                                     Commands.sequence(
                                             Commands.runOnce(
                                                     () -> {
-                                                        this.leds.setMode(LEDMode.Default);
+                                                        this.leds.setMode(LEDMode.Off);
                                                         SmartDashboard.putBoolean(
                                                                 "TeleopAlignIndicator", false);
                                                     }),
@@ -291,11 +291,13 @@ public class RobotContainer {
                                                                                 new WaitCommand(
                                                                                         0.25),
                                                                                 Commands.runOnce(
-                                                                                        () ->
+                                                                                        () -> {
                                                                                                 SmartDashboard
                                                                                                         .putBoolean(
                                                                                                                 "TeleopAlignIndicator",
-                                                                                                                true))));
+                                                                                                                false);
+                                                                                                this.leds.setMode(LEDMode.Off);
+                                                                                        })));
                                                     })));
                 });
     }
@@ -500,14 +502,14 @@ public class RobotContainer {
                 .onTrue(
                         Commands.run(
                                 () -> {
-                                    this.leds.setMode(LEDMode.CoralGrabbed);
+                                    this.leds.setMode(LEDMode.CoralDetected);
                                     SmartDashboard.putBoolean("CoralDetected", true);
                                 },
                                 leds))
                 .onFalse(
                         Commands.run(
                                 () -> {
-                                    this.leds.setMode(LEDMode.Default);
+                                    this.leds.setMode(LEDMode.Off);
                                     SmartDashboard.putBoolean("CoralDetected", false);
                                 },
                                 leds));

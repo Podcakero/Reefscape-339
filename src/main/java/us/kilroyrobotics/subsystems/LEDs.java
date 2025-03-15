@@ -30,20 +30,19 @@ public class LEDs extends SubsystemBase {
                     .scrollAtAbsoluteSpeed(MetersPerSecond.of(0.5), ledSpacing);
 
     public static enum LEDMode {
-        Default,
+        Off,
+        Rainbow,
         TeleopAligned,
-        CoralGrabbed
+        CoralDetected
     }
 
-    private LEDMode mode = LEDMode.Default;
+    private LEDMode mode = LEDMode.Off;
 
     /** Creates a new LEDs. */
     public LEDs() {
         this.led.setLength(this.ledBuffer.getLength());
         this.led.setData(this.ledBuffer);
         this.led.start();
-
-        // this.rainbow.applyTo(this.ledBuffer);
     }
 
     public void setMode(LEDMode newMode) {
@@ -53,14 +52,17 @@ public class LEDs extends SubsystemBase {
     @Override
     public void periodic() {
         switch (mode) {
-            case Default:
+            case Rainbow:
                 this.rainbow.applyTo(ledBuffer);
                 break;
             case TeleopAligned:
                 this.teleopAligned.applyTo(ledBuffer);
                 break;
-            case CoralGrabbed:
+            case CoralDetected:
                 this.coralGrabbed.applyTo(ledBuffer);
+                break;
+            default:
+                LEDPattern.kOff.applyTo(ledBuffer);
                 break;
         }
         this.led.setData(ledBuffer);
