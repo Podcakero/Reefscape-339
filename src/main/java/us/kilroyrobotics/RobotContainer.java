@@ -132,7 +132,12 @@ public class RobotContainer {
     /* Coral Intake Wheel Commands */
     private Command setCoralIntaking() {
         return new InstantCommand(
-                () -> coralIntakeMotor.setCoralState(CoralState.INTAKING), coralIntakeMotor);
+                () -> {
+                    coralIntakeMotor.setCoralState(CoralState.INTAKING);
+                    leds.setMode(LEDMode.WaitingForCoral);
+                },
+                coralIntakeMotor,
+                leds);
     }
 
     private Command setCoralOuttaking() {
@@ -147,12 +152,17 @@ public class RobotContainer {
 
     private Command genCoralOffCommand() {
         return new InstantCommand(
-                () -> coralIntakeMotor.setCoralState(CoralState.OFF), coralIntakeMotor);
+                () -> {
+                    coralIntakeMotor.setCoralState(CoralState.OFF);
+                    leds.setMode(LEDMode.Off);
+                },
+                coralIntakeMotor,
+                leds);
     }
 
     private Command waitForCoral =
             Commands.waitUntil(() -> coralIntakeMotor.getCoralSensor().get())
-                    .withTimeout(Seconds.of(2.5));
+                    .withTimeout(Seconds.of(3.5));
 
     /* Elevator Commands */
     private Command elevatorSetBottom =
@@ -289,14 +299,18 @@ public class RobotContainer {
                                                                 .schedule(
                                                                         Commands.sequence(
                                                                                 new WaitCommand(
-                                                                                        0.25),
+                                                                                        2.5),
                                                                                 Commands.runOnce(
                                                                                         () -> {
-                                                                                                SmartDashboard
-                                                                                                        .putBoolean(
-                                                                                                                "TeleopAlignIndicator",
-                                                                                                                false);
-                                                                                                this.leds.setMode(LEDMode.Off);
+                                                                                            SmartDashboard
+                                                                                                    .putBoolean(
+                                                                                                            "TeleopAlignIndicator",
+                                                                                                            false);
+                                                                                            this
+                                                                                                    .leds
+                                                                                                    .setMode(
+                                                                                                            LEDMode
+                                                                                                                    .Off);
                                                                                         })));
                                                     })));
                 });
@@ -474,6 +488,7 @@ public class RobotContainer {
                 .onFalse(wristStop());
 
         // Elevator Controls
+        rightOperatorJoystick.button(9).onTrue(elevatorSetBottom);
         rightOperatorJoystick.button(10).onTrue(elevatorSetL1);
         rightOperatorJoystick.button(7).onTrue(elevatorSetL2);
         rightOperatorJoystick.button(11).onTrue(elevatorSetL3);
@@ -500,14 +515,14 @@ public class RobotContainer {
 
         new Trigger(this.coralIntakeMotor::isCoralDetected)
                 .onTrue(
-                        Commands.run(
+                        Commands.runOnce(
                                 () -> {
                                     this.leds.setMode(LEDMode.CoralDetected);
                                     SmartDashboard.putBoolean("CoralDetected", true);
                                 },
                                 leds))
                 .onFalse(
-                        Commands.run(
+                        Commands.runOnce(
                                 () -> {
                                     this.leds.setMode(LEDMode.Off);
                                     SmartDashboard.putBoolean("CoralDetected", false);
