@@ -53,28 +53,21 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Reef F to Near Side Source"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "ElevatorBottom"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "CoralOff"
-                }
-              }
-            ]
+            "name": "CoralOff"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ElevatorBottom"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Reef F to Near Side Source"
           }
         },
         {

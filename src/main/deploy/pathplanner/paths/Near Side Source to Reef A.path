@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.16025,
-        "y": 0.9927499999999998
+        "x": 1.43325,
+        "y": 0.8075
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.5529250313406289,
-        "y": 1.229156186963823
+        "x": 1.8259250313406288,
+        "y": 1.043906186963823
       },
       "isLocked": true,
       "linkedName": "Near Side Source"
@@ -17,11 +17,11 @@
     {
       "anchor": {
         "x": 2.99,
-        "y": 4.2
+        "y": 4.19
       },
       "prevControl": {
         "x": 2.8295321907322566,
-        "y": 3.732969155844156
+        "y": 3.722969155844156
       },
       "nextControl": null,
       "isLocked": true,
