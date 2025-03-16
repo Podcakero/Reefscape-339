@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLED.ColorOrder;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.LEDPattern.GradientType;
@@ -23,16 +24,20 @@ public class LEDs extends SubsystemBase {
     private LEDPattern rainbow =
             LEDPattern.rainbow(255, 128).scrollAtAbsoluteSpeed(MetersPerSecond.of(0.5), ledSpacing);
     private LEDPattern teleopAligned =
-            LEDPattern.gradient(GradientType.kContinuous, Color.kYellow, Color.kOrange)
+            LEDPattern.gradient(GradientType.kDiscontinuous, Color.kOrange, Color.kRed)
+                    .scrollAtAbsoluteSpeed(MetersPerSecond.of(0.5), ledSpacing);
+    private LEDPattern waitingForCoral =
+            LEDPattern.gradient(GradientType.kContinuous, Color.kGreen, Color.kForestGreen)
                     .scrollAtAbsoluteSpeed(MetersPerSecond.of(0.5), ledSpacing);
     private LEDPattern coralGrabbed =
-            LEDPattern.gradient(GradientType.kContinuous, Color.kLightSkyBlue, Color.kAquamarine)
+            LEDPattern.gradient(GradientType.kContinuous, Color.kLightSkyBlue, Color.kIndigo)
                     .scrollAtAbsoluteSpeed(MetersPerSecond.of(0.5), ledSpacing);
 
     public static enum LEDMode {
         Off,
         Rainbow,
         TeleopAligned,
+        WaitingForCoral,
         CoralDetected
     }
 
@@ -40,6 +45,7 @@ public class LEDs extends SubsystemBase {
 
     /** Creates a new LEDs. */
     public LEDs() {
+        this.led.setColorOrder(ColorOrder.kBRG);
         this.led.setLength(this.ledBuffer.getLength());
         this.led.setData(this.ledBuffer);
         this.led.start();
@@ -57,6 +63,9 @@ public class LEDs extends SubsystemBase {
                 break;
             case TeleopAligned:
                 this.teleopAligned.applyTo(ledBuffer);
+                break;
+            case WaitingForCoral:
+                this.waitingForCoral.applyTo(ledBuffer);
                 break;
             case CoralDetected:
                 this.coralGrabbed.applyTo(ledBuffer);
