@@ -19,17 +19,8 @@ public class CoralIntakeMotor extends SubsystemBase {
         this.wheelMotor = new SparkMax(CoralMechanismConstants.kWheelMotorId, MotorType.kBrushless);
     }
 
-    CoralState coralState = CoralState.OFF;
-
-    public static enum CoralState { // 4 State Enum
-        OFF,
-        INTAKING,
-        OUTTAKING,
-        HOLDING,
-    }
-
-    public void setCoralState(CoralState newState) {
-        this.coralState = newState;
+    public void setSpeed(double speed) {
+        this.wheelMotor.set(speed);
     }
 
     public DigitalInput getCoralSensor() {
@@ -41,20 +32,5 @@ public class CoralIntakeMotor extends SubsystemBase {
     }
 
     @Override
-    public void periodic() {
-        switch (coralState) {
-            case INTAKING:
-                this.wheelMotor.set(CoralMechanismConstants.kWheelSpeedIntaking);
-                break;
-            case OUTTAKING:
-                this.wheelMotor.set(CoralMechanismConstants.kWheelSpeedOuttaking);
-                break;
-            case HOLDING:
-                this.wheelMotor.set(CoralMechanismConstants.kWheelSpeedHolding);
-                break;
-            default:
-                this.wheelMotor.set(0);
-                break;
-        }
-    }
+    public void periodic() {}
 }

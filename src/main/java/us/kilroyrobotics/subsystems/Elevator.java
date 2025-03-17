@@ -36,6 +36,8 @@ public class Elevator extends SubsystemBase {
     private RelativeEncoder m_encoder;
     private SparkClosedLoopController m_pidController;
 
+    private Distance goalPosition;
+
     /* Sim Specific */
     private DCMotor m_simElevatorGearbox;
     private SparkMaxSim m_simLeadMotor;
@@ -103,16 +105,25 @@ public class Elevator extends SubsystemBase {
         return Meters.of(this.m_encoder.getPosition());
     }
 
+    public boolean inPosition() {
+        return this.goalPosition.isNear(getPosition(), ElevatorConstants.kPositionTolerance);
+    }
+
     public void setPosition(Distance distance) {
+        this.goalPosition = distance;
         this.m_pidController.setReference(distance.in(Meters), ControlType.kPosition);
     }
 
     public void resetEncoder() {
-        m_encoder.setPosition(ElevatorConstants.kZeroed.in(Meters));
+        this.m_encoder.setPosition(ElevatorConstants.kZeroed.in(Meters));
     }
 
     public void setSpeed(double speed) {
         this.m_leadMotor.set(speed);
+    }
+
+    public void resetClosedLoopControl() {
+        this.setPosition(this.getPosition());
     }
 
     public void stop() {

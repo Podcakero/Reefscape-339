@@ -9,7 +9,6 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -42,7 +41,6 @@ import us.kilroyrobotics.subsystems.Camera;
 // import us.kilroyrobotics.subsystems.AlgaeIntake.AlgaeState;
 import us.kilroyrobotics.subsystems.CommandSwerveDrivetrain;
 import us.kilroyrobotics.subsystems.CoralIntakeMotor;
-import us.kilroyrobotics.subsystems.CoralIntakeMotor.CoralState;
 import us.kilroyrobotics.subsystems.Elevator;
 import us.kilroyrobotics.subsystems.LEDs;
 import us.kilroyrobotics.subsystems.LEDs.LEDMode;
@@ -96,26 +94,26 @@ public class RobotContainer {
     public RobotContainer() {
         if (Robot.isReal() && CameraConstants.kCameraEnabled) new Camera();
 
-        NamedCommands.registerCommand("CoralIntake", setCoralIntaking());
-        NamedCommands.registerCommand("CoralOuttake", setCoralOuttaking());
-        NamedCommands.registerCommand("CoralHolding", genCoralHoldingCommand());
-        NamedCommands.registerCommand("CoralOff", genCoralOffCommand());
-        NamedCommands.registerCommand("WaitForCoral", waitForCoral);
+        // NamedCommands.registerCommand("CoralIntake", setCoralIntaking);
+        // NamedCommands.registerCommand("CoralOuttake", setCoralOuttaking);
+        // NamedCommands.registerCommand("CoralHolding", genCoralHoldingCommand);
+        // NamedCommands.registerCommand("CoralOff", genCoralOffCommand);
+        // NamedCommands.registerCommand("WaitForCoral", waitForCoral);
 
-        NamedCommands.registerCommand("ElevatorBottom", elevatorSetBottom);
-        NamedCommands.registerCommand("ElevatorL1", elevatorSetL1);
-        NamedCommands.registerCommand("ElevatorL2", elevatorSetL2);
-        NamedCommands.registerCommand("ElevatorL3", elevatorSetL3);
-        NamedCommands.registerCommand("ElevatorL4", elevatorSetL4);
-        NamedCommands.registerCommand("ElevatorCS", elevatorSetCoralStation);
+        // NamedCommands.registerCommand("ElevatorBottom", elevatorSetBottom);
+        // NamedCommands.registerCommand("ElevatorL1", elevatorSetL1);
+        // NamedCommands.registerCommand("ElevatorL2", elevatorSetL2);
+        // NamedCommands.registerCommand("ElevatorL3", elevatorSetL3);
+        // NamedCommands.registerCommand("ElevatorL4", elevatorSetL4);
+        // NamedCommands.registerCommand("ElevatorCS", elevatorSetCoralStation);
 
-        NamedCommands.registerCommand("WristL1", wristSetL1);
-        NamedCommands.registerCommand("WristL2", wristSetL2);
-        NamedCommands.registerCommand("WristL3", wristSetL3);
-        NamedCommands.registerCommand("WristL4", wristSetL4);
-        NamedCommands.registerCommand("WristCS", wristSetCoralStation);
+        // NamedCommands.registerCommand("WristL1", wristSetL1);
+        // NamedCommands.registerCommand("WristL2", wristSetL2);
+        // NamedCommands.registerCommand("WristL3", wristSetL3);
+        // NamedCommands.registerCommand("WristL4", wristSetL4);
+        // NamedCommands.registerCommand("WristCS", wristSetCoralStation);
 
-        NamedCommands.registerCommand("Leave", autoLeave);
+        // NamedCommands.registerCommand("Leave", autoLeave);
 
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -130,39 +128,40 @@ public class RobotContainer {
     }
 
     /* Coral Intake Wheel Commands */
-    private Command setCoralIntaking() {
-        return new InstantCommand(
-                () -> {
-                    coralIntakeMotor.setCoralState(CoralState.INTAKING);
-                    leds.setMode(LEDMode.WaitingForCoral);
-                },
-                coralIntakeMotor,
-                leds);
-    }
+    //     private Command setCoralIntaking() {
+    //         return new InstantCommand(
+    //                 () -> {
+    //                     coralIntakeMotor.setCoralState(CoralState.INTAKING);
+    //                     leds.setMode(LEDMode.WaitingForCoral);
+    //                 },
+    //                 coralIntakeMotor,
+    //                 leds);
+    //     }
 
-    private Command setCoralOuttaking() {
-        return new InstantCommand(
-                () -> coralIntakeMotor.setCoralState(CoralState.OUTTAKING), coralIntakeMotor);
-    }
+    //     private Command setCoralOuttaking() {
+    //         return new InstantCommand(
+    //                 () -> coralIntakeMotor.setCoralState(CoralState.OUTTAKING),
+    // coralIntakeMotor);
+    //     }
 
-    private Command genCoralHoldingCommand() {
-        return new InstantCommand(
-                () -> coralIntakeMotor.setCoralState(CoralState.HOLDING), coralIntakeMotor);
-    }
+    //     private Command genCoralHoldingCommand() {
+    //         return new InstantCommand(
+    //                 () -> coralIntakeMotor.setCoralState(CoralState.HOLDING), coralIntakeMotor);
+    //     }
 
-    private Command genCoralOffCommand() {
-        return new InstantCommand(
-                () -> {
-                    coralIntakeMotor.setCoralState(CoralState.OFF);
-                    leds.setMode(LEDMode.Off);
-                },
-                coralIntakeMotor,
-                leds);
-    }
+    //     private Command genCoralOffCommand() {
+    //         return new InstantCommand(
+    //                 () -> {
+    //                     coralIntakeMotor.setCoralState(CoralState.OFF);
+    //                     leds.setMode(LEDMode.Off);
+    //                 },
+    //                 coralIntakeMotor,
+    //                 leds);
+    //     }
 
-    private Command waitForCoral =
-            Commands.waitUntil(() -> coralIntakeMotor.getCoralSensor().get())
-                    .withTimeout(Seconds.of(3.5));
+    //     private Command waitForCoral =
+    //             Commands.waitUntil(() -> coralIntakeMotor.getCoralSensor().get())
+    //                     .withTimeout(Seconds.of(3.5));
 
     /* Elevator Commands */
     private Command elevatorSetBottom =
@@ -466,46 +465,46 @@ public class RobotContainer {
                                 }));
 
         // Coral Intake Motor Controls
-        leftOperatorJoystick.button(2).onTrue(setCoralIntaking()).onFalse(genCoralHoldingCommand());
-        leftOperatorJoystick.button(3).onTrue(setCoralOuttaking()).onFalse(genCoralOffCommand());
+        // leftOperatorJoystick.button(2).onTrue(setCoralIntaking()).onFalse(genCoralHoldingCommand());
+        // leftOperatorJoystick.button(3).onTrue(setCoralOuttaking()).onFalse(genCoralOffCommand());
 
-        // Wrist Control
-        leftOperatorJoystick.button(10).onTrue(wristSetL1);
-        leftOperatorJoystick.button(7).onTrue(wristSetL2);
-        leftOperatorJoystick.button(11).onTrue(wristSetL3);
+        // // Wrist Control
+        // leftOperatorJoystick.button(10).onTrue(wristSetL1);
+        // leftOperatorJoystick.button(7).onTrue(wristSetL2);
+        // leftOperatorJoystick.button(11).onTrue(wristSetL3);
         // leftOperatorJoystick.button(6).onTrue(wristSetL4AndStop);
-        leftOperatorJoystick.button(8).onTrue(wristSetCoralStation);
-        leftOperatorJoystick
-                .button(1)
-                .whileTrue(
-                        Commands.run(
-                                () ->
-                                        wrist.setSpeed(
-                                                -leftOperatorJoystick.getY()
-                                                        * CoralMechanismConstants
-                                                                .kOverrideSpeedMultiplier),
-                                wrist))
-                .onFalse(wristStop());
+        // leftOperatorJoystick.button(8).onTrue(wristSetCoralStation);
+        // leftOperatorJoystick
+        //         .button(1)
+        //         .whileTrue(
+        //                 Commands.run(
+        //                         () ->
+        //                                 wrist.setSpeed(
+        //                                         -leftOperatorJoystick.getY()
+        //                                                 * CoralMechanismConstants
+        //                                                         .kOverrideSpeedMultiplier),
+        //                         wrist))
+        //         .onFalse(wristStop());
 
         // Elevator Controls
-        rightOperatorJoystick.button(9).onTrue(elevatorSetBottom);
-        rightOperatorJoystick.button(10).onTrue(elevatorSetL1);
-        rightOperatorJoystick.button(7).onTrue(elevatorSetL2);
-        rightOperatorJoystick.button(11).onTrue(elevatorSetL3);
+        // rightOperatorJoystick.button(9).onTrue(elevatorSetBottom);
+        // rightOperatorJoystick.button(10).onTrue(elevatorSetL1);
+        // rightOperatorJoystick.button(7).onTrue(elevatorSetL2);
+        // rightOperatorJoystick.button(11).onTrue(elevatorSetL3);
         // rightOperatorJoystick.button(6).onTrue(elevatorSetL4);
-        rightOperatorJoystick.button(8).onTrue(elevatorSetCoralStation);
-        rightOperatorJoystick
-                .button(1)
-                .whileTrue(
-                        Commands.run(
-                                () ->
-                                        elevator.setSpeed(
-                                                rightOperatorJoystick.getY()
-                                                        * ElevatorConstants
-                                                                .kOverrideSpeedMultiplier),
-                                elevator,
-                                wrist))
-                .onFalse(elevatorStop);
+        // rightOperatorJoystick.button(8).onTrue(elevatorSetCoralStation);
+        // rightOperatorJoystick
+        //         .button(1)
+        //         .whileTrue(
+        //                 Commands.run(
+        //                         () ->
+        //                                 elevator.setSpeed(
+        //                                         rightOperatorJoystick.getY()
+        //                                                 * ElevatorConstants
+        //                                                         .kOverrideSpeedMultiplier),
+        //                         elevator,
+        //                         wrist))
+        //         .onFalse(elevatorStop);
 
         // Reef Alignment
         driverController.leftBumper().onTrue(alignReef(true));

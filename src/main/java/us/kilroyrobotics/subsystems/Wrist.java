@@ -42,6 +42,8 @@ public class Wrist extends SubsystemBase {
     private RelativeEncoder m_relativeEncoder;
     private SparkClosedLoopController m_pidController;
 
+    private Angle goalAngle;
+
     /* Sim Specific */
     private DCMotor m_simWristGearbox;
     private SparkMaxSim m_simWristMotor;
@@ -114,13 +116,22 @@ public class Wrist extends SubsystemBase {
                         : this.m_relativeEncoder.getPosition());
     }
 
+    public boolean inPosition() {
+        return this.goalAngle.isNear(getAngle(), CoralMechanismConstants.kAngleTolerance);
+    }
+
     public void setAngle(Angle angle) {
         // If using throughbore absolute encoder, don't multiply by 64 (gearbox ratio)
+        this.goalAngle = angle;
         this.m_pidController.setReference(angle.in(Rotations), ControlType.kPosition);
     }
 
     public void setSpeed(double speed) {
         this.m_wristMotor.set(speed);
+    }
+
+    public void resetClosedLoopControl() {
+        this.setAngle(this.getAngle());
     }
 
     public void stop() {
