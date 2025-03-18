@@ -6,7 +6,8 @@ package us.kilroyrobotics.util;
 
 public enum TowerState {
     INIT,
-    HOMING,
+    HOMING_ELEVATOR,
+    HOMING_WRIST,
     HOME,
     RAISING_TO_INTAKE,
     TILTING_TO_INTAKE,

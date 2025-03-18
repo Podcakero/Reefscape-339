@@ -7,28 +7,31 @@ package us.kilroyrobotics.subsystems;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import us.kilroyrobotics.Constants;
+import us.kilroyrobotics.subsystems.LEDs.LEDMode;
 import us.kilroyrobotics.util.TowerEvent;
 import us.kilroyrobotics.util.TowerState;
 
-public class TowerSubsystem extends SubsystemBase {
+public class Tower extends SubsystemBase {
 
     private TowerState currentState = TowerState.INIT;
     private TowerEvent pendingEvent = TowerEvent.NONE;
 
-    private Timer stateTimer = new Timer();
+    private final Timer stateTimer = new Timer();
 
-    private Elevator elevator;
-    private Wrist wrist;
-    private CoralIntakeMotor coralIntakeMotor;
+    private final Elevator elevator;
+    private final Wrist wrist;
+    private final CoralIntakeMotor coralIntakeMotor;
+    private final LEDs leds;
 
     private double safetyFactor = 1;
     private int currentLevel = 0;
 
     /** Creates a new Tower. */
-    public TowerSubsystem(Elevator elevator, Wrist wrist, CoralIntakeMotor coralIntakeMotor) {
+    public Tower(Elevator elevator, Wrist wrist, CoralIntakeMotor coralIntakeMotor, LEDs leds) {
         this.elevator = elevator;
         this.wrist = wrist;
         this.coralIntakeMotor = coralIntakeMotor;
+        this.leds = leds;
 
         stateTimer.start();
     }
@@ -54,36 +57,47 @@ public class TowerSubsystem extends SubsystemBase {
     public void runStateMachine() {
         switch (currentState) {
             case INIT:
-                elevator.setPosition(Constants.ElevatorConstants.kCoralStationHeight);
-                wrist.setAngle(Constants.CoralMechanismConstants.kIntakingAngle);
-                coralIntakeMotor.setSpeed(Constants.CoralMechanismConstants.kWheelSpeedIntaking);
+                elevator.setPosition(Constants.ElevatorConstants.kZeroed);
+                coralIntakeMotor.setSpeed(0.0);
 
-                setState(TowerState.HOMING);
+                setState(TowerState.HOMING_ELEVATOR);
                 break;
-            case HOMING:
-                if (wrist.inPosition() && elevator.inPosition()) setState(TowerState.HOME);
+            case HOMING_ELEVATOR:
+                if (elevator.inPosition()) {
+                    wrist.setAngle(Constants.CoralMechanismConstants.kStartingAngle);
+
+                    setState(TowerState.HOMING_WRIST);
+                }
                 break;
+            case HOMING_WRIST:
+                if (wrist.inPosition()) setState(TowerState.HOME);
             case HOME:
-                if (isTriggered(TowerEvent.INTAKE_CORAL)) setState(TowerState.TILTING_TO_INTAKE);
-                else if (coralIntakeMotor.isCoralDetected()) setState(TowerState.GOT_CORAL);
+                if (isTriggered(TowerEvent.INTAKE_CORAL)) {
+                    wrist.setAngle(Constants.CoralMechanismConstants.kIntakingAngle);
+
+                    setState(TowerState.TILTING_TO_INTAKE);
+                } else if (coralIntakeMotor.isCoralDetected()) setState(TowerState.GOT_CORAL);
                 else currentLevel = 0;
                 break;
             case RAISING_TO_INTAKE:
                 if (elevator.inPosition()) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kIntakingAngle);
-
-                    setState(TowerState.INTAKING);
-                }
-            case TILTING_TO_INTAKE:
-                if (wrist.inPosition()) {
                     coralIntakeMotor.setSpeed(
                             Constants.CoralMechanismConstants.kWheelSpeedIntaking);
 
+                    setState(TowerState.INTAKING);
+                }
+                break;
+            case TILTING_TO_INTAKE:
+                if (wrist.inPosition()) {
+                    elevator.setPosition(Constants.ElevatorConstants.kCoralStationHeight);
+
                     setState(TowerState.RAISING_TO_INTAKE);
                 }
+                break;
             case INTAKING:
                 if (coralIntakeMotor.isCoralDetected()) {
                     coralIntakeMotor.setSpeed(Constants.CoralMechanismConstants.kWheelSpeedHolding);
+                    leds.setMode(LEDMode.CoralDetected);
 
                     setState(TowerState.GOT_CORAL);
                 }
@@ -216,7 +230,7 @@ public class TowerSubsystem extends SubsystemBase {
         }
     }
 
-    private void setState(TowerState newState) {
+    public void setState(TowerState newState) {
         currentState = newState;
         stateTimer.reset();
     }

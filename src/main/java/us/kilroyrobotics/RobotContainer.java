@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -24,11 +25,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.List;
 import us.kilroyrobotics.Constants.CameraConstants;
 import us.kilroyrobotics.Constants.CoralMechanismConstants;
@@ -44,9 +43,12 @@ import us.kilroyrobotics.subsystems.CoralIntakeMotor;
 import us.kilroyrobotics.subsystems.Elevator;
 import us.kilroyrobotics.subsystems.LEDs;
 import us.kilroyrobotics.subsystems.LEDs.LEDMode;
+import us.kilroyrobotics.subsystems.Tower;
 import us.kilroyrobotics.subsystems.Wrist;
 import us.kilroyrobotics.util.LimelightHelpers;
 import us.kilroyrobotics.util.LimelightHelpers.RawFiducial;
+import us.kilroyrobotics.util.TowerEvent;
+import us.kilroyrobotics.util.TowerState;
 
 public class RobotContainer {
     private LinearVelocity currentDriveSpeed = DriveConstants.kMediumDriveSpeed;
@@ -87,12 +89,376 @@ public class RobotContainer {
 
     public final LEDs leds = new LEDs();
 
+    public final Tower tower = new Tower(elevator, wrist, coralIntakeMotor, leds);
+
+    /* Commands */
+    public final Command intakeCoral =
+            Commands.runOnce(
+                    () -> tower.triggerEvent(TowerEvent.INTAKE_CORAL),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    public final Command scoreCoral =
+            Commands.runOnce(
+                    () -> tower.triggerEvent(TowerEvent.SCORE),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    public final Command gotoL1 =
+            Commands.runOnce(
+                    () -> tower.triggerEvent(TowerEvent.GOTO_L1),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    public final Command gotoL2 =
+            Commands.runOnce(
+                    () -> tower.triggerEvent(TowerEvent.GOTO_L2),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    public final Command gotoL3 =
+            Commands.runOnce(
+                    () -> tower.triggerEvent(TowerEvent.GOTO_L3),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    public final Command gotoL4 =
+            Commands.runOnce(
+                    () -> tower.triggerEvent(TowerEvent.GOTO_L4),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    public final Command gotoIntake =
+            Commands.runOnce(
+                    () -> tower.triggerEvent(TowerEvent.GOTO_INTAKE_CORAL),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+
+    /* Manual Control Commands */
+    private final Command initTower =
+            Commands.runOnce(
+                    () -> tower.setState(TowerState.INIT),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    private final Command raiseToL1 =
+            Commands.runOnce(
+                    () -> tower.setState(TowerState.RAISING_TO_L1),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    private final Command raiseToL2 =
+            Commands.runOnce(
+                    () -> tower.setState(TowerState.RAISING_TO_L2),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    private final Command raiseToL3 =
+            Commands.runOnce(
+                    () -> tower.setState(TowerState.RAISING_TO_L3),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    private final Command raiseToL4 =
+            Commands.runOnce(
+                    () -> tower.setState(TowerState.RAISING_TO_L4),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+    private final Command tiltToIntake =
+            Commands.runOnce(
+                    () -> tower.setState(TowerState.TILTING_TO_INTAKE),
+                    tower,
+                    elevator,
+                    wrist,
+                    coralIntakeMotor);
+
+    private final Command controlWrist =
+            Commands.run(
+                    () ->
+                            wrist.setSpeed(
+                                    -leftOperatorJoystick.getY()
+                                            * CoralMechanismConstants.kOverrideSpeedMultiplier),
+                    wrist);
+
+    private final Command controlElevator =
+            Commands.run(
+                    () ->
+                            elevator.setSpeed(
+                                    rightOperatorJoystick.getY()
+                                            * ElevatorConstants.kOverrideSpeedMultiplier),
+                    elevator);
+
+    private final Command wristStop =
+            Commands.runOnce(
+                    () -> {
+                        wrist.stop();
+                        wrist.resetClosedLoopControl();
+                    },
+                    wrist);
+
+    private final Command elevatorStop =
+            Commands.runOnce(
+                    () -> {
+                        elevator.stop();
+                        elevator.resetClosedLoopControl();
+                    },
+                    elevator);
+
+    private final Command defenseMode =
+            Commands.runOnce(
+                    () -> {
+                        boolean defenseModeOn = SmartDashboard.getBoolean("DefenseModeOn", true);
+                        this.currentDriveSpeed =
+                                defenseModeOn
+                                        ? DriveConstants.kMediumDriveSpeed
+                                        : DriveConstants.kHighDriveSpeed;
+                        SmartDashboard.putBoolean("DefenseModeOn", !defenseModeOn);
+                    });
+
+    private int currentAprilTag = 0;
+
+    /* Reef Alignment */
+    private final Command alignReefLeft =
+            Commands.runOnce(
+                    () -> {
+                        Pose2d targetPose;
+
+                        RawFiducial[] aprilTags =
+                                LimelightHelpers.getRawFiducials("limelight-right");
+                        if (aprilTags.length < 1)
+                            aprilTags = LimelightHelpers.getRawFiducials("limelight-left");
+
+                        if (aprilTags.length < 1) {
+                            if (currentAprilTag == 0) return;
+
+                            targetPose =
+                                    VisionConstants.getAlignmentPose(
+                                            currentAprilTag,
+                                            true,
+                                            DriverStation.getAlliance().orElse(Alliance.Blue));
+                        } else {
+                            RawFiducial aprilTag = aprilTags[0];
+                            currentAprilTag = aprilTag.id;
+                            System.out.println(
+                                    "[TELEOP-ASSIST] "
+                                            + " Selected tag "
+                                            + this.currentAprilTag
+                                            + " for alignment");
+
+                            targetPose =
+                                    VisionConstants.getAlignmentPose(
+                                            aprilTag.id,
+                                            true,
+                                            DriverStation.getAlliance().orElse(Alliance.Blue));
+                        }
+
+                        if (targetPose == null) return;
+
+                        System.out.println(
+                                "[TELEOP-ASSIST] " + "[LEFT]" + " Going to pose " + targetPose);
+
+                        List<Waypoint> waypoints =
+                                PathPlannerPath.waypointsFromPoses(
+                                        this.drivetrain.getState().Pose, targetPose);
+
+                        PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
+
+                        PathPlannerPath path =
+                                new PathPlannerPath(
+                                        waypoints,
+                                        constraints,
+                                        null,
+                                        new GoalEndState(0.0, targetPose.getRotation()));
+                        path.preventFlipping = true;
+
+                        CommandScheduler.getInstance()
+                                .schedule(
+                                        Commands.sequence(
+                                                Commands.runOnce(
+                                                        () -> {
+                                                            this.leds.setMode(LEDMode.Off);
+                                                            SmartDashboard.putBoolean(
+                                                                    "TeleopAlignIndicator", false);
+                                                        },
+                                                        leds),
+                                                AutoBuilder.followPath(path),
+                                                Commands.runOnce(
+                                                        () -> {
+                                                            System.out.println(
+                                                                    "[TELEOP-ASSIST] "
+                                                                            + "[LEFT]"
+                                                                            + " Arrived at Pose for tag "
+                                                                            + this.currentAprilTag);
+                                                            this.currentAprilTag = 0;
+
+                                                            SmartDashboard.putBoolean(
+                                                                    "TeleopAlignIndicator", true);
+                                                            this.leds.setMode(
+                                                                    LEDMode.TeleopAligned);
+
+                                                            CommandScheduler.getInstance()
+                                                                    .schedule(
+                                                                            Commands.sequence(
+                                                                                    new WaitCommand(
+                                                                                            2.5),
+                                                                                    Commands
+                                                                                            .runOnce(
+                                                                                                    () -> {
+                                                                                                        SmartDashboard
+                                                                                                                .putBoolean(
+                                                                                                                        "TeleopAlignIndicator",
+                                                                                                                        false);
+                                                                                                        this
+                                                                                                                .leds
+                                                                                                                .setMode(
+                                                                                                                        LEDMode
+                                                                                                                                .Off);
+                                                                                                    },
+                                                                                                    leds)));
+                                                        },
+                                                        leds)));
+                    },
+                    leds);
+
+    private final Command alignReefRight =
+            Commands.runOnce(
+                    () -> {
+                        Pose2d targetPose;
+
+                        RawFiducial[] aprilTags =
+                                LimelightHelpers.getRawFiducials("limelight-right");
+                        if (aprilTags.length < 1)
+                            aprilTags = LimelightHelpers.getRawFiducials("limelight-left");
+
+                        if (aprilTags.length < 1) {
+                            if (currentAprilTag == 0) return;
+
+                            targetPose =
+                                    VisionConstants.getAlignmentPose(
+                                            currentAprilTag,
+                                            false,
+                                            DriverStation.getAlliance().orElse(Alliance.Blue));
+                        } else {
+                            RawFiducial aprilTag = aprilTags[0];
+                            currentAprilTag = aprilTag.id;
+                            System.out.println(
+                                    "[TELEOP-ASSIST] "
+                                            + " Selected tag "
+                                            + this.currentAprilTag
+                                            + " for alignment");
+
+                            targetPose =
+                                    VisionConstants.getAlignmentPose(
+                                            aprilTag.id,
+                                            false,
+                                            DriverStation.getAlliance().orElse(Alliance.Blue));
+                        }
+
+                        if (targetPose == null) return;
+
+                        System.out.println(
+                                "[TELEOP-ASSIST] " + "[RIGHT]" + " Going to pose " + targetPose);
+
+                        List<Waypoint> waypoints =
+                                PathPlannerPath.waypointsFromPoses(
+                                        this.drivetrain.getState().Pose, targetPose);
+
+                        PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
+
+                        PathPlannerPath path =
+                                new PathPlannerPath(
+                                        waypoints,
+                                        constraints,
+                                        null,
+                                        new GoalEndState(0.0, targetPose.getRotation()));
+                        path.preventFlipping = true;
+
+                        CommandScheduler.getInstance()
+                                .schedule(
+                                        Commands.sequence(
+                                                Commands.runOnce(
+                                                        () -> {
+                                                            this.leds.setMode(LEDMode.Off);
+                                                            SmartDashboard.putBoolean(
+                                                                    "TeleopAlignIndicator", false);
+                                                        },
+                                                        leds),
+                                                AutoBuilder.followPath(path),
+                                                Commands.runOnce(
+                                                        () -> {
+                                                            System.out.println(
+                                                                    "[TELEOP-ASSIST] "
+                                                                            + "[RIGHT]"
+                                                                            + " Arrived at Pose for tag "
+                                                                            + this.currentAprilTag);
+                                                            this.currentAprilTag = 0;
+
+                                                            SmartDashboard.putBoolean(
+                                                                    "TeleopAlignIndicator", true);
+                                                            this.leds.setMode(
+                                                                    LEDMode.TeleopAligned);
+
+                                                            CommandScheduler.getInstance()
+                                                                    .schedule(
+                                                                            Commands.sequence(
+                                                                                    new WaitCommand(
+                                                                                            2.5),
+                                                                                    Commands
+                                                                                            .runOnce(
+                                                                                                    () -> {
+                                                                                                        SmartDashboard
+                                                                                                                .putBoolean(
+                                                                                                                        "TeleopAlignIndicator",
+                                                                                                                        false);
+                                                                                                        this
+                                                                                                                .leds
+                                                                                                                .setMode(
+                                                                                                                        LEDMode
+                                                                                                                                .Off);
+                                                                                                    },
+                                                                                                    leds)));
+                                                        },
+                                                        leds)));
+                    },
+                    leds);
+
+    /* AutoLeave Command */
+    private Timer autoLeaveTimer = new Timer();
+    private final Command autoLeave =
+            Commands.sequence(
+                            Commands.runOnce(() -> this.autoLeaveTimer.restart()),
+                            drivetrain.applyRequest(
+                                    () -> forwardStraight.withVelocityX(MetersPerSecond.of(0.5))))
+                    .onlyWhile(() -> !autoLeaveTimer.hasElapsed(2));
+
     /* Path follower */
     private final SendableChooser<Command> autoChooser;
 
     @SuppressWarnings("unused")
     public RobotContainer() {
         if (Robot.isReal() && CameraConstants.kCameraEnabled) new Camera();
+
+        NamedCommands.registerCommand("Intake Coral", intakeCoral);
+        NamedCommands.registerCommand("Score Coral", scoreCoral);
+        NamedCommands.registerCommand("GoTo L1", gotoL1);
+        NamedCommands.registerCommand("GoTo L2", gotoL2);
+        NamedCommands.registerCommand("GoTo L3", gotoL3);
+        NamedCommands.registerCommand("GoTo L4", gotoL4);
+        NamedCommands.registerCommand("GoTo Intake", gotoIntake);
 
         // NamedCommands.registerCommand("CoralIntake", setCoralIntaking);
         // NamedCommands.registerCommand("CoralOuttake", setCoralOuttaking);
@@ -113,7 +479,7 @@ public class RobotContainer {
         // NamedCommands.registerCommand("WristL4", wristSetL4);
         // NamedCommands.registerCommand("WristCS", wristSetCoralStation);
 
-        // NamedCommands.registerCommand("Leave", autoLeave);
+        NamedCommands.registerCommand("Leave", autoLeave);
 
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -164,164 +530,63 @@ public class RobotContainer {
     //                     .withTimeout(Seconds.of(3.5));
 
     /* Elevator Commands */
-    private Command elevatorSetBottom =
-            Commands.runOnce(
-                    () -> elevator.setPosition(ElevatorConstants.kZeroed), elevator, wrist);
-    private Command elevatorSetL1 =
-            Commands.runOnce(
-                    () -> elevator.setPosition(ElevatorConstants.kL1Height), elevator, wrist);
-    private Command elevatorSetL2 =
-            Commands.runOnce(
-                    () -> elevator.setPosition(ElevatorConstants.kL2Height), elevator, wrist);
-    private Command elevatorSetL3 =
-            Commands.runOnce(
-                    () -> elevator.setPosition(ElevatorConstants.kL3Height), elevator, wrist);
-    private Command elevatorSetL4 =
-            Commands.runOnce(
-                    () -> elevator.setPosition(ElevatorConstants.kL4Height), elevator, wrist);
-    private Command elevatorSetCoralStation =
-            Commands.runOnce(
-                    () -> elevator.setPosition(ElevatorConstants.kCoralStationHeight), elevator);
+    //     private Command elevatorSetBottom =
+    //             Commands.runOnce(
+    //                     () -> elevator.setPosition(ElevatorConstants.kZeroed), elevator, wrist);
+    //     private Command elevatorSetL1 =
+    //             Commands.runOnce(
+    //                     () -> elevator.setPosition(ElevatorConstants.kL1Height), elevator,
+    // wrist);
+    //     private Command elevatorSetL2 =
+    //             Commands.runOnce(
+    //                     () -> elevator.setPosition(ElevatorConstants.kL2Height), elevator,
+    // wrist);
+    //     private Command elevatorSetL3 =
+    //             Commands.runOnce(
+    //                     () -> elevator.setPosition(ElevatorConstants.kL3Height), elevator,
+    // wrist);
+    //     private Command elevatorSetL4 =
+    //             Commands.runOnce(
+    //                     () -> elevator.setPosition(ElevatorConstants.kL4Height), elevator,
+    // wrist);
+    //     private Command elevatorSetCoralStation =
+    //             Commands.runOnce(
+    //                     () -> elevator.setPosition(ElevatorConstants.kCoralStationHeight),
+    // elevator);
 
     /* Wrist Commands */
-    private Command wristSetL1 =
-            Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL1), wrist);
-    private Command wristSetL2 =
-            Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL2), wrist);
-    private Command wristSetL3 =
-            Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL3), wrist);
-    private Command wristSetL4 =
-            Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL4), wrist);
-    public Command wristSetCoralStation =
-            Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kIntakingAngle), wrist);
+    //     private Command wristSetL1 =
+    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL1),
+    // wrist);
+    //     private Command wristSetL2 =
+    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL2),
+    // wrist);
+    //     private Command wristSetL3 =
+    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL3),
+    // wrist);
+    //     private Command wristSetL4 =
+    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL4),
+    // wrist);
+    //     public Command wristSetCoralStation =
+    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kIntakingAngle),
+    // wrist);
 
-    private Command wristStop() {
-        return new InstantCommand(
-                () -> {
-                    wrist.setAngle(wrist.getAngle());
-                    wrist.stop();
-                },
-                wrist);
-    }
+    //     private Command wristStop() {
+    //         return new InstantCommand(
+    //                 () -> {
+    //                     wrist.setAngle(wrist.getAngle());
+    //                     wrist.stop();
+    //                 },
+    //                 wrist);
+    //     }
 
     /* Preset Commands */
-    private Command elevatorStop =
-            Commands.runOnce(
-                    () -> {
-                        elevator.setPosition(elevator.getPosition());
-                    },
-                    elevator);
-
-    private int currentAprilTag = 0;
-
-    private Command alignReef(boolean leftSide) {
-        return Commands.runOnce(
-                () -> {
-                    Pose2d targetPose;
-
-                    RawFiducial[] aprilTags = LimelightHelpers.getRawFiducials("limelight-right");
-                    if (aprilTags.length < 1)
-                        aprilTags = LimelightHelpers.getRawFiducials("limelight-left");
-
-                    if (aprilTags.length < 1) {
-                        if (currentAprilTag == 0) return;
-
-                        targetPose =
-                                VisionConstants.getAlignmentPose(
-                                        currentAprilTag,
-                                        leftSide,
-                                        DriverStation.getAlliance().orElse(Alliance.Blue));
-                    } else {
-                        RawFiducial aprilTag = aprilTags[0];
-                        currentAprilTag = aprilTag.id;
-                        System.out.println(
-                                "[TELEOP-ASSIST] "
-                                        + " Selected tag "
-                                        + this.currentAprilTag
-                                        + " for alignment");
-
-                        targetPose =
-                                VisionConstants.getAlignmentPose(
-                                        aprilTag.id,
-                                        leftSide,
-                                        DriverStation.getAlliance().orElse(Alliance.Blue));
-                    }
-
-                    if (targetPose == null) return;
-
-                    System.out.println(
-                            "[TELEOP-ASSIST] "
-                                    + (leftSide ? "[LEFT]" : "[RIGHT]")
-                                    + " Going to pose "
-                                    + targetPose);
-
-                    List<Waypoint> waypoints =
-                            PathPlannerPath.waypointsFromPoses(
-                                    this.drivetrain.getState().Pose, targetPose);
-
-                    PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
-
-                    PathPlannerPath path =
-                            new PathPlannerPath(
-                                    waypoints,
-                                    constraints,
-                                    null,
-                                    new GoalEndState(0.0, targetPose.getRotation()));
-                    path.preventFlipping = true;
-
-                    CommandScheduler.getInstance()
-                            .schedule(
-                                    Commands.sequence(
-                                            Commands.runOnce(
-                                                    () -> {
-                                                        this.leds.setMode(LEDMode.Off);
-                                                        SmartDashboard.putBoolean(
-                                                                "TeleopAlignIndicator", false);
-                                                    }),
-                                            AutoBuilder.followPath(path),
-                                            Commands.runOnce(
-                                                    () -> {
-                                                        System.out.println(
-                                                                "[TELEOP-ASSIST] "
-                                                                        + (leftSide
-                                                                                ? "[LEFT]"
-                                                                                : "[RIGHT]")
-                                                                        + " Arrived at Pose for tag "
-                                                                        + this.currentAprilTag);
-                                                        this.currentAprilTag = 0;
-
-                                                        SmartDashboard.putBoolean(
-                                                                "TeleopAlignIndicator", true);
-                                                        this.leds.setMode(LEDMode.TeleopAligned);
-
-                                                        CommandScheduler.getInstance()
-                                                                .schedule(
-                                                                        Commands.sequence(
-                                                                                new WaitCommand(
-                                                                                        2.5),
-                                                                                Commands.runOnce(
-                                                                                        () -> {
-                                                                                            SmartDashboard
-                                                                                                    .putBoolean(
-                                                                                                            "TeleopAlignIndicator",
-                                                                                                            false);
-                                                                                            this
-                                                                                                    .leds
-                                                                                                    .setMode(
-                                                                                                            LEDMode
-                                                                                                                    .Off);
-                                                                                        })));
-                                                    })));
-                });
-    }
-
-    private Timer autoLeaveTimer = new Timer();
-    private Command autoLeave =
-            Commands.sequence(
-                            Commands.runOnce(() -> this.autoLeaveTimer.restart()),
-                            drivetrain.applyRequest(
-                                    () -> forwardStraight.withVelocityX(MetersPerSecond.of(0.5))))
-                    .onlyWhile(() -> !autoLeaveTimer.hasElapsed(2));
+    //     private Command elevatorStop =
+    //             Commands.runOnce(
+    //                     () -> {
+    //                         elevator.setPosition(elevator.getPosition());
+    //                     },
+    //                     elevator);
 
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
@@ -450,19 +715,23 @@ public class RobotContainer {
         driverController.a().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         // Switch to higher speeds (defense mode)
-        driverController
-                .start()
-                .onTrue(
-                        Commands.runOnce(
-                                () -> {
-                                    boolean defenseModeOn =
-                                            SmartDashboard.getBoolean("DefenseModeOn", true);
-                                    this.currentDriveSpeed =
-                                            defenseModeOn
-                                                    ? DriveConstants.kMediumDriveSpeed
-                                                    : DriveConstants.kHighDriveSpeed;
-                                    SmartDashboard.putBoolean("DefenseModeOn", !defenseModeOn);
-                                }));
+        driverController.start().onTrue(defenseMode);
+
+        leftOperatorJoystick.button(2).onTrue(intakeCoral);
+        leftOperatorJoystick.button(3).onTrue(scoreCoral);
+
+        leftOperatorJoystick.button(10).onTrue(gotoL1);
+        leftOperatorJoystick.button(7).onTrue(gotoL2);
+        leftOperatorJoystick.button(11).onTrue(gotoL3);
+        leftOperatorJoystick.button(6).onTrue(gotoL4);
+        leftOperatorJoystick.button(8).onTrue(gotoIntake);
+
+        rightOperatorJoystick.button(10).onTrue(initTower);
+        rightOperatorJoystick.button(10).onTrue(raiseToL1);
+        rightOperatorJoystick.button(7).onTrue(raiseToL2);
+        rightOperatorJoystick.button(11).onTrue(raiseToL3);
+        rightOperatorJoystick.button(6).onTrue(raiseToL4);
+        rightOperatorJoystick.button(8).onTrue(tiltToIntake);
 
         // Coral Intake Motor Controls
         // leftOperatorJoystick.button(2).onTrue(setCoralIntaking()).onFalse(genCoralHoldingCommand());
@@ -474,17 +743,7 @@ public class RobotContainer {
         // leftOperatorJoystick.button(11).onTrue(wristSetL3);
         // leftOperatorJoystick.button(6).onTrue(wristSetL4AndStop);
         // leftOperatorJoystick.button(8).onTrue(wristSetCoralStation);
-        // leftOperatorJoystick
-        //         .button(1)
-        //         .whileTrue(
-        //                 Commands.run(
-        //                         () ->
-        //                                 wrist.setSpeed(
-        //                                         -leftOperatorJoystick.getY()
-        //                                                 * CoralMechanismConstants
-        //                                                         .kOverrideSpeedMultiplier),
-        //                         wrist))
-        //         .onFalse(wristStop());
+        leftOperatorJoystick.button(1).whileTrue(controlWrist).onFalse(wristStop);
 
         // Elevator Controls
         // rightOperatorJoystick.button(9).onTrue(elevatorSetBottom);
@@ -493,40 +752,11 @@ public class RobotContainer {
         // rightOperatorJoystick.button(11).onTrue(elevatorSetL3);
         // rightOperatorJoystick.button(6).onTrue(elevatorSetL4);
         // rightOperatorJoystick.button(8).onTrue(elevatorSetCoralStation);
-        // rightOperatorJoystick
-        //         .button(1)
-        //         .whileTrue(
-        //                 Commands.run(
-        //                         () ->
-        //                                 elevator.setSpeed(
-        //                                         rightOperatorJoystick.getY()
-        //                                                 * ElevatorConstants
-        //                                                         .kOverrideSpeedMultiplier),
-        //                         elevator,
-        //                         wrist))
-        //         .onFalse(elevatorStop);
+        rightOperatorJoystick.button(1).whileTrue(controlElevator).onFalse(elevatorStop);
 
         // Reef Alignment
-        driverController.leftBumper().onTrue(alignReef(true));
-        driverController.rightBumper().onTrue(alignReef(false));
-
-        drivetrain.registerTelemetry(logger::telemeterize);
-
-        new Trigger(this.coralIntakeMotor::isCoralDetected)
-                .onTrue(
-                        Commands.runOnce(
-                                () -> {
-                                    this.leds.setMode(LEDMode.CoralDetected);
-                                    SmartDashboard.putBoolean("CoralDetected", true);
-                                },
-                                leds))
-                .onFalse(
-                        Commands.runOnce(
-                                () -> {
-                                    this.leds.setMode(LEDMode.Off);
-                                    SmartDashboard.putBoolean("CoralDetected", false);
-                                },
-                                leds));
+        driverController.leftBumper().onTrue(alignReefLeft);
+        driverController.rightBumper().onTrue(alignReefRight);
     }
 
     public Command getAutonomousCommand() {
