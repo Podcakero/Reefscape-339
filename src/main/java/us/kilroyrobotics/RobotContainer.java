@@ -479,22 +479,8 @@ public class RobotContainer {
         driverController.start().onTrue(defenseMode);
 
         /* Automatic Control */
-        leftOperatorJoystick.button(2).onTrue(tower.intakeCoral);
-        leftOperatorJoystick.button(3).onTrue(tower.scoreCoral);
-        leftOperatorJoystick.button(10).onTrue(tower.gotoL1);
-        leftOperatorJoystick.button(7).onTrue(tower.gotoL2);
-        leftOperatorJoystick.button(11).onTrue(tower.gotoL3);
-        leftOperatorJoystick.button(6).onTrue(tower.gotoL4);
 
         /* Manual Control */
-        rightOperatorJoystick.button(10).onTrue(tower.initTower);
-        rightOperatorJoystick.button(10).onTrue(tower.raiseToL1);
-        rightOperatorJoystick.button(7).onTrue(tower.raiseToL2);
-        rightOperatorJoystick.button(11).onTrue(tower.raiseToL3);
-        rightOperatorJoystick.button(6).onTrue(tower.raiseToL4);
-        rightOperatorJoystick.button(8).onTrue(tower.tiltToIntake);
-        leftOperatorJoystick.button(1).whileTrue(controlWrist).onFalse(wrist.wristStop);
-        rightOperatorJoystick.button(1).whileTrue(controlElevator).onFalse(elevator.elevatorStop);
 
         // Reef Alignment
         driverController.leftBumper().onTrue(alignReefLeft);
