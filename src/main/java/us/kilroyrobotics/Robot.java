@@ -79,6 +79,8 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledInit() {
         m_robotContainer.leds.setMode(LEDMode.Rainbow);
+
+        m_robotContainer.tower.initialize();
     }
 
     @Override
@@ -87,6 +89,8 @@ public class Robot extends TimedRobot {
     @Override
     public void disabledExit() {
         m_robotContainer.leds.setMode(LEDMode.Off);
+
+        m_robotContainer.tower.initialize();
     }
 
     @Override
@@ -103,6 +107,8 @@ public class Robot extends TimedRobot {
             m_robotContainer.intakeCoral.schedule();
             m_autonomousCommand.schedule();
         }
+
+        m_robotContainer.tower.initialize();
     }
 
     @Override

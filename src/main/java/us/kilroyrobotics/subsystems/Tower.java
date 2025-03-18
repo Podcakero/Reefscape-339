@@ -38,17 +38,12 @@ public class Tower extends SubsystemBase {
     }
 
     public void initialize() {
-        pendingEvent = TowerEvent.NONE;
-        setState(TowerState.INIT);
-
-        wrist.stop();
-        elevator.stop();
-    }
-
-    public void home() {
         coralIntakeMotor.setSpeed(0);
 
+        elevator.stop();
         elevator.resetClosedLoopControl();
+
+        wrist.stop();
         wrist.resetClosedLoopControl();
 
         pendingEvent = TowerEvent.NONE;
