@@ -104,7 +104,7 @@ public class Robot extends TimedRobot {
                 Commands.sequence(autoDelayCommand, m_robotContainer.getAutonomousCommand());
 
         if (m_autonomousCommand != null) {
-            m_robotContainer.intakeCoral.schedule();
+            m_robotContainer.tower.intakeCoral.schedule();
             m_autonomousCommand.schedule();
         }
 
@@ -120,7 +120,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         Shuffleboard.selectTab("Teleop");
-        m_robotContainer.intakeCoral.schedule();
+        m_robotContainer.tower.intakeCoral.schedule();
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }

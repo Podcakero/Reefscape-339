@@ -47,8 +47,6 @@ import us.kilroyrobotics.subsystems.Tower;
 import us.kilroyrobotics.subsystems.Wrist;
 import us.kilroyrobotics.util.LimelightHelpers;
 import us.kilroyrobotics.util.LimelightHelpers.RawFiducial;
-import us.kilroyrobotics.util.TowerEvent;
-import us.kilroyrobotics.util.TowerState;
 
 public class RobotContainer {
     private LinearVelocity currentDriveSpeed = DriveConstants.kMediumDriveSpeed;
@@ -91,50 +89,6 @@ public class RobotContainer {
 
     public final Tower tower = new Tower(elevator, wrist, coralIntakeMotor, leds);
 
-    /* Commands */
-    public final Command intakeCoral =
-            tower.runOnce(() -> tower.triggerEvent(TowerEvent.INTAKE_CORAL));
-    private final Command scoreCoral = tower.runOnce(() -> tower.triggerEvent(TowerEvent.SCORE));
-    private final Command gotoL1 = tower.runOnce(() -> tower.triggerEvent(TowerEvent.GOTO_L1));
-    private final Command gotoL2 = tower.runOnce(() -> tower.triggerEvent(TowerEvent.GOTO_L2));
-    private final Command gotoL3 = tower.runOnce(() -> tower.triggerEvent(TowerEvent.GOTO_L3));
-    private final Command gotoL4 = tower.runOnce(() -> tower.triggerEvent(TowerEvent.GOTO_L4));
-    private final Command gotoHome = tower.runOnce(() -> tower.triggerEvent(TowerEvent.HOME_TOWER));
-
-    /* Manual Control Commands */
-    private final Command initTower = tower.runOnce(() -> tower.setState(TowerState.INIT));
-    private final Command raiseToL1 = tower.runOnce(() -> tower.setState(TowerState.RAISING_TO_L1));
-    private final Command raiseToL2 = tower.runOnce(() -> tower.setState(TowerState.RAISING_TO_L2));
-    private final Command raiseToL3 = tower.runOnce(() -> tower.setState(TowerState.RAISING_TO_L3));
-    private final Command raiseToL4 = tower.runOnce(() -> tower.setState(TowerState.RAISING_TO_L4));
-    private final Command tiltToIntake =
-            tower.runOnce(() -> tower.setState(TowerState.TILTING_TO_INTAKE));
-
-    private final Command controlWrist =
-            wrist.run(
-                    () ->
-                            wrist.setSpeed(
-                                    -leftOperatorJoystick.getY()
-                                            * CoralMechanismConstants.kOverrideSpeedMultiplier));
-    private final Command controlElevator =
-            elevator.run(
-                    () ->
-                            elevator.setSpeed(
-                                    rightOperatorJoystick.getY()
-                                            * ElevatorConstants.kOverrideSpeedMultiplier));
-    private final Command wristStop =
-            wrist.runOnce(
-                    () -> {
-                        wrist.stop();
-                        wrist.resetClosedLoopControl();
-                    });
-    private final Command elevatorStop =
-            elevator.runOnce(
-                    () -> {
-                        elevator.stop();
-                        elevator.resetClosedLoopControl();
-                    });
-
     /* Drivetrain Control Commands */
     private final Command defenseMode =
             Commands.runOnce(
@@ -148,6 +102,20 @@ public class RobotContainer {
                     });
 
     private int currentAprilTag = 0;
+
+    public final Command controlElevator =
+            elevator.run(
+                    () ->
+                            elevator.setSpeed(
+                                    rightOperatorJoystick.getY()
+                                            * ElevatorConstants.kOverrideSpeedMultiplier));
+
+    public final Command controlWrist =
+            wrist.run(
+                    () ->
+                            wrist.setSpeed(
+                                    -leftOperatorJoystick.getY()
+                                            * CoralMechanismConstants.kOverrideSpeedMultiplier));
 
     /* Reef Alignment */
     private final Command alignReefLeft =
@@ -360,12 +328,12 @@ public class RobotContainer {
     public RobotContainer() {
         if (Robot.isReal() && CameraConstants.kCameraEnabled) new Camera();
 
-        NamedCommands.registerCommand("Intake Coral", intakeCoral);
-        NamedCommands.registerCommand("Score Coral", scoreCoral);
-        NamedCommands.registerCommand("GoTo L1", gotoL1);
-        NamedCommands.registerCommand("GoTo L2", gotoL2);
-        NamedCommands.registerCommand("GoTo L3", gotoL3);
-        NamedCommands.registerCommand("GoTo L4", gotoL4);
+        NamedCommands.registerCommand("Intake Coral", tower.intakeCoral);
+        NamedCommands.registerCommand("Score Coral", tower.scoreCoral);
+        NamedCommands.registerCommand("GoTo L1", tower.gotoL1);
+        NamedCommands.registerCommand("GoTo L2", tower.gotoL2);
+        NamedCommands.registerCommand("GoTo L3", tower.gotoL3);
+        NamedCommands.registerCommand("GoTo L4", tower.gotoL4);
 
         NamedCommands.registerCommand("Leave", autoLeave);
 
@@ -511,22 +479,22 @@ public class RobotContainer {
         driverController.start().onTrue(defenseMode);
 
         /* Automatic Control */
-        leftOperatorJoystick.button(2).onTrue(intakeCoral);
-        leftOperatorJoystick.button(3).onTrue(scoreCoral);
-        leftOperatorJoystick.button(10).onTrue(gotoL1);
-        leftOperatorJoystick.button(7).onTrue(gotoL2);
-        leftOperatorJoystick.button(11).onTrue(gotoL3);
-        leftOperatorJoystick.button(6).onTrue(gotoL4);
+        leftOperatorJoystick.button(2).onTrue(tower.intakeCoral);
+        leftOperatorJoystick.button(3).onTrue(tower.scoreCoral);
+        leftOperatorJoystick.button(10).onTrue(tower.gotoL1);
+        leftOperatorJoystick.button(7).onTrue(tower.gotoL2);
+        leftOperatorJoystick.button(11).onTrue(tower.gotoL3);
+        leftOperatorJoystick.button(6).onTrue(tower.gotoL4);
 
         /* Manual Control */
-        rightOperatorJoystick.button(10).onTrue(initTower);
-        rightOperatorJoystick.button(10).onTrue(raiseToL1);
-        rightOperatorJoystick.button(7).onTrue(raiseToL2);
-        rightOperatorJoystick.button(11).onTrue(raiseToL3);
-        rightOperatorJoystick.button(6).onTrue(raiseToL4);
-        rightOperatorJoystick.button(8).onTrue(tiltToIntake);
-        leftOperatorJoystick.button(1).whileTrue(controlWrist).onFalse(wristStop);
-        rightOperatorJoystick.button(1).whileTrue(controlElevator).onFalse(elevatorStop);
+        rightOperatorJoystick.button(10).onTrue(tower.initTower);
+        rightOperatorJoystick.button(10).onTrue(tower.raiseToL1);
+        rightOperatorJoystick.button(7).onTrue(tower.raiseToL2);
+        rightOperatorJoystick.button(11).onTrue(tower.raiseToL3);
+        rightOperatorJoystick.button(6).onTrue(tower.raiseToL4);
+        rightOperatorJoystick.button(8).onTrue(tower.tiltToIntake);
+        leftOperatorJoystick.button(1).whileTrue(controlWrist).onFalse(wrist.wristStop);
+        rightOperatorJoystick.button(1).whileTrue(controlElevator).onFalse(elevator.elevatorStop);
 
         // Reef Alignment
         driverController.leftBumper().onTrue(alignReefLeft);
