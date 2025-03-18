@@ -79,7 +79,7 @@ public class RobotContainer {
     /* Subsystems */
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    private final CoralIntakeMotor coralIntakeMotor = new CoralIntakeMotor();
+    public final CoralIntakeMotor coralIntakeMotor = new CoralIntakeMotor();
 
     @Logged(name = "Elevator")
     public final Elevator elevator = new Elevator();
@@ -99,42 +99,42 @@ public class RobotContainer {
                     elevator,
                     wrist,
                     coralIntakeMotor);
-    public final Command scoreCoral =
+    private final Command scoreCoral =
             Commands.runOnce(
                     () -> tower.triggerEvent(TowerEvent.SCORE),
                     tower,
                     elevator,
                     wrist,
                     coralIntakeMotor);
-    public final Command gotoL1 =
+    private final Command gotoL1 =
             Commands.runOnce(
                     () -> tower.triggerEvent(TowerEvent.GOTO_L1),
                     tower,
                     elevator,
                     wrist,
                     coralIntakeMotor);
-    public final Command gotoL2 =
+    private final Command gotoL2 =
             Commands.runOnce(
                     () -> tower.triggerEvent(TowerEvent.GOTO_L2),
                     tower,
                     elevator,
                     wrist,
                     coralIntakeMotor);
-    public final Command gotoL3 =
+    private final Command gotoL3 =
             Commands.runOnce(
                     () -> tower.triggerEvent(TowerEvent.GOTO_L3),
                     tower,
                     elevator,
                     wrist,
                     coralIntakeMotor);
-    public final Command gotoL4 =
+    private final Command gotoL4 =
             Commands.runOnce(
                     () -> tower.triggerEvent(TowerEvent.GOTO_L4),
                     tower,
                     elevator,
                     wrist,
                     coralIntakeMotor);
-    public final Command gotoHome =
+    private final Command gotoHome =
             Commands.runOnce(
                     () -> tower.triggerEvent(TowerEvent.HOME_TOWER),
                     tower,
@@ -425,7 +425,7 @@ public class RobotContainer {
                     });
 
     /* AutoLeave Command */
-    private Timer autoLeaveTimer = new Timer();
+    private final Timer autoLeaveTimer = new Timer();
     private final Command autoLeave =
             Commands.sequence(
                             Commands.runOnce(() -> autoLeaveTimer.restart()),
