@@ -7,7 +7,6 @@ package us.kilroyrobotics.util;
 public enum TowerEvent {
     NONE,
     HOME_TOWER,
-    GOTO_INTAKE_CORAL,
     GOTO_L1,
     GOTO_L2,
     GOTO_L3,

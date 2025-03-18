@@ -134,9 +134,9 @@ public class RobotContainer {
                     elevator,
                     wrist,
                     coralIntakeMotor);
-    public final Command gotoIntake =
+    public final Command gotoHome =
             Commands.runOnce(
-                    () -> tower.triggerEvent(TowerEvent.GOTO_INTAKE_CORAL),
+                    () -> tower.triggerEvent(TowerEvent.HOME_TOWER),
                     tower,
                     elevator,
                     wrist,
@@ -458,7 +458,6 @@ public class RobotContainer {
         NamedCommands.registerCommand("GoTo L2", gotoL2);
         NamedCommands.registerCommand("GoTo L3", gotoL3);
         NamedCommands.registerCommand("GoTo L4", gotoL4);
-        NamedCommands.registerCommand("GoTo Intake", gotoIntake);
 
         // NamedCommands.registerCommand("CoralIntake", setCoralIntaking);
         // NamedCommands.registerCommand("CoralOuttake", setCoralOuttaking);
@@ -724,7 +723,6 @@ public class RobotContainer {
         leftOperatorJoystick.button(7).onTrue(gotoL2);
         leftOperatorJoystick.button(11).onTrue(gotoL3);
         leftOperatorJoystick.button(6).onTrue(gotoL4);
-        leftOperatorJoystick.button(8).onTrue(gotoIntake);
 
         rightOperatorJoystick.button(10).onTrue(initTower);
         rightOperatorJoystick.button(10).onTrue(raiseToL1);

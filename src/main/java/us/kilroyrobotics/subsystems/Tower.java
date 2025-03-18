@@ -6,7 +6,8 @@ package us.kilroyrobotics.subsystems;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import us.kilroyrobotics.Constants;
+import us.kilroyrobotics.Constants.CoralMechanismConstants;
+import us.kilroyrobotics.Constants.ElevatorConstants;
 import us.kilroyrobotics.subsystems.LEDs.LEDMode;
 import us.kilroyrobotics.util.TowerEvent;
 import us.kilroyrobotics.util.TowerState;
@@ -57,14 +58,14 @@ public class Tower extends SubsystemBase {
     public void runStateMachine() {
         switch (currentState) {
             case INIT:
-                elevator.setPosition(Constants.ElevatorConstants.kZeroed);
+                elevator.setPosition(ElevatorConstants.kZeroed);
                 coralIntakeMotor.setSpeed(0.0);
 
                 setState(TowerState.HOMING_ELEVATOR);
                 break;
             case HOMING_ELEVATOR:
                 if (elevator.inPosition()) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kStartingAngle);
+                    wrist.setAngle(CoralMechanismConstants.kStartingAngle);
 
                     setState(TowerState.HOMING_WRIST);
                 }
@@ -73,30 +74,30 @@ public class Tower extends SubsystemBase {
                 if (wrist.inPosition()) setState(TowerState.HOME);
             case HOME:
                 if (isTriggered(TowerEvent.INTAKE_CORAL)) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kIntakingAngle);
+                    wrist.setAngle(CoralMechanismConstants.kIntakingAngle);
 
                     setState(TowerState.TILTING_TO_INTAKE);
                 } else if (coralIntakeMotor.isCoralDetected()) setState(TowerState.GOT_CORAL);
                 else currentLevel = 0;
                 break;
-            case RAISING_TO_INTAKE:
-                if (elevator.inPosition()) {
-                    coralIntakeMotor.setSpeed(
-                            Constants.CoralMechanismConstants.kWheelSpeedIntaking);
-
-                    setState(TowerState.INTAKING);
-                }
-                break;
             case TILTING_TO_INTAKE:
                 if (wrist.inPosition()) {
-                    elevator.setPosition(Constants.ElevatorConstants.kCoralStationHeight);
+                    elevator.setPosition(ElevatorConstants.kCoralStationHeight);
 
                     setState(TowerState.RAISING_TO_INTAKE);
                 }
                 break;
+            case RAISING_TO_INTAKE:
+                if (elevator.inPosition()) {
+                    coralIntakeMotor.setSpeed(CoralMechanismConstants.kWheelSpeedIntaking);
+
+                    setState(TowerState.INTAKING);
+                }
+                break;
             case INTAKING:
                 if (coralIntakeMotor.isCoralDetected()) {
-                    coralIntakeMotor.setSpeed(Constants.CoralMechanismConstants.kWheelSpeedHolding);
+                    elevator.setPosition(ElevatorConstants.kZeroed);
+                    coralIntakeMotor.setSpeed(CoralMechanismConstants.kWheelSpeedHolding);
                     leds.setMode(LEDMode.CoralDetected);
 
                     setState(TowerState.GOT_CORAL);
@@ -104,25 +105,25 @@ public class Tower extends SubsystemBase {
                 break;
             case GOT_CORAL:
                 if (isTriggered(TowerEvent.GOTO_L1)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL1Height);
+                    elevator.setPosition(ElevatorConstants.kL1Height);
                     coralIntakeMotor.setSpeed(0);
 
                     currentLevel = 1;
                     setState(TowerState.RAISING_TO_L1);
                 } else if (isTriggered(TowerEvent.GOTO_L2)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL2Height);
+                    elevator.setPosition(ElevatorConstants.kL2Height);
                     coralIntakeMotor.setSpeed(0);
 
                     currentLevel = 2;
                     setState(TowerState.RAISING_TO_L2);
                 } else if (isTriggered(TowerEvent.GOTO_L3)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL3Height);
+                    elevator.setPosition(ElevatorConstants.kL3Height);
                     coralIntakeMotor.setSpeed(0);
 
                     currentLevel = 3;
                     setState(TowerState.RAISING_TO_L3);
                 } else if (isTriggered(TowerEvent.GOTO_L4)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL4Height);
+                    elevator.setPosition(ElevatorConstants.kL4Height);
                     coralIntakeMotor.setSpeed(0);
 
                     currentLevel = 4;
@@ -131,28 +132,28 @@ public class Tower extends SubsystemBase {
                 break;
             case RAISING_TO_L1:
                 if (elevator.inPosition()) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL1);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL1);
 
                     setState(TowerState.TILTING_TO_SCORE);
                 }
                 break;
             case RAISING_TO_L2:
                 if (elevator.inPosition()) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL2);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL2);
 
                     setState(TowerState.TILTING_TO_SCORE);
                 }
                 break;
             case RAISING_TO_L3:
                 if (elevator.inPosition()) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL3);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL3);
 
                     setState(TowerState.TILTING_TO_SCORE);
                 }
                 break;
             case RAISING_TO_L4:
                 if (elevator.inPosition()) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL4);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL4);
 
                     setState(TowerState.TILTING_TO_SCORE);
                 }
@@ -162,31 +163,30 @@ public class Tower extends SubsystemBase {
                 break;
             case READY_TO_SCORE_CORAL:
                 if (isTriggered(TowerEvent.SCORE)) {
-                    coralIntakeMotor.setSpeed(
-                            Constants.CoralMechanismConstants.kWheelSpeedOuttaking);
+                    coralIntakeMotor.setSpeed(CoralMechanismConstants.kWheelSpeedOuttaking);
 
                     setState(TowerState.SCORING_CORAL);
                 } else if ((isTriggered(TowerEvent.GOTO_L4)) && (currentLevel != 4)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL4Height);
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL4);
+                    elevator.setPosition(ElevatorConstants.kL4Height);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL4);
 
                     currentLevel = 4;
                     setState(TowerState.RAISING_TO_L4);
                 } else if ((isTriggered(TowerEvent.GOTO_L3)) && (currentLevel != 3)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL3Height);
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL3);
+                    elevator.setPosition(ElevatorConstants.kL3Height);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL3);
 
                     currentLevel = 3;
                     setState(TowerState.RAISING_TO_L3);
                 } else if ((isTriggered(TowerEvent.GOTO_L2)) && (currentLevel != 2)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL2Height);
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL2);
+                    elevator.setPosition(ElevatorConstants.kL2Height);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL2);
 
                     currentLevel = 2;
                     setState(TowerState.RAISING_TO_L2);
                 } else if ((isTriggered(TowerEvent.GOTO_L1)) && (currentLevel != 1)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kL1Height);
-                    wrist.setAngle(Constants.CoralMechanismConstants.kScoringL1);
+                    elevator.setPosition(ElevatorConstants.kL1Height);
+                    wrist.setAngle(CoralMechanismConstants.kScoringL1);
 
                     currentLevel = 1;
                     setState(TowerState.RAISING_TO_L1);
@@ -194,16 +194,14 @@ public class Tower extends SubsystemBase {
                 break;
             case SCORING_CORAL:
                 if (!coralIntakeMotor.isCoralDetected() || stateTimer.hasElapsed(0.3)) {
-                    wrist.setAngle(Constants.CoralMechanismConstants.kIntakingAngle);
+                    wrist.setAngle(CoralMechanismConstants.kIntakingAngle);
 
                     setState(TowerState.PAUSING_AFTER_SCORING_CORAL);
                 }
                 break;
             case PAUSING_AFTER_SCORING_CORAL:
                 if (wrist.inPosition() && stateTimer.hasElapsed(0.2)) {
-                    elevator.setPosition(Constants.ElevatorConstants.kCoralStationHeight);
-
-                    setState(TowerState.INIT);
+                    setState(TowerState.HOMING_ELEVATOR);
                 }
                 break;
         }
