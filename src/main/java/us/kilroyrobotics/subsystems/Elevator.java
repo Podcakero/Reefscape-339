@@ -45,10 +45,10 @@ public class Elevator extends SubsystemBase {
 
     /** Creates a new Elevator. */
     public Elevator() {
-        this.m_leadMotor = new SparkMax(ElevatorConstants.kLeftMotorId, MotorType.kBrushless);
-        this.m_followerMotor = new SparkMax(ElevatorConstants.kRightMotorId, MotorType.kBrushless);
-        this.m_pidController = this.m_leadMotor.getClosedLoopController();
-        this.m_encoder = this.m_leadMotor.getEncoder();
+        m_leadMotor = new SparkMax(ElevatorConstants.kLeftMotorId, MotorType.kBrushless);
+        m_followerMotor = new SparkMax(ElevatorConstants.kRightMotorId, MotorType.kBrushless);
+        m_pidController = m_leadMotor.getClosedLoopController();
+        m_encoder = m_leadMotor.getEncoder();
 
         // Configure
         SparkMaxConfig leadMotorConfig = new SparkMaxConfig();
@@ -73,21 +73,21 @@ public class Elevator extends SubsystemBase {
         SparkMaxConfig followerMotorConfig = new SparkMaxConfig();
         followerMotorConfig.idleMode(IdleMode.kBrake);
         followerMotorConfig.smartCurrentLimit(40);
-        followerMotorConfig.follow(this.m_leadMotor, true);
+        followerMotorConfig.follow(m_leadMotor, true);
 
-        this.m_leadMotor.configure(
+        m_leadMotor.configure(
                 leadMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        this.m_followerMotor.configure(
+        m_followerMotor.configure(
                 followerMotorConfig,
                 ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
 
         // Sim
-        this.m_simElevatorGearbox = DCMotor.getNEO(2);
-        this.m_simLeadMotor = new SparkMaxSim(m_leadMotor, m_simElevatorGearbox);
-        this.m_simElevator =
+        m_simElevatorGearbox = DCMotor.getNEO(2);
+        m_simLeadMotor = new SparkMaxSim(m_leadMotor, m_simElevatorGearbox);
+        m_simElevator =
                 new ElevatorSim(
-                        this.m_simElevatorGearbox,
+                        m_simElevatorGearbox,
                         SimulationConstants.kElevatorGearing,
                         SimulationConstants.kElevatorCarriageMass.magnitude(),
                         SimulationConstants.kElevatorDrumRadius.magnitude(),
@@ -98,36 +98,36 @@ public class Elevator extends SubsystemBase {
     }
 
     public double getVelocity() {
-        return this.m_leadMotor.getAppliedOutput();
+        return m_leadMotor.getAppliedOutput();
     }
 
     public Distance getPosition() {
-        return Meters.of(this.m_encoder.getPosition());
+        return Meters.of(m_encoder.getPosition());
     }
 
     public boolean inPosition() {
-        return this.goalPosition.isNear(getPosition(), ElevatorConstants.kPositionTolerance);
+        return goalPosition.isNear(getPosition(), ElevatorConstants.kPositionTolerance);
     }
 
     public void setPosition(Distance distance) {
-        this.goalPosition = distance;
-        this.m_pidController.setReference(distance.in(Meters), ControlType.kPosition);
+        goalPosition = distance;
+        m_pidController.setReference(distance.in(Meters), ControlType.kPosition);
     }
 
     public void resetEncoder() {
-        this.m_encoder.setPosition(ElevatorConstants.kZeroed.in(Meters));
+        m_encoder.setPosition(ElevatorConstants.kZeroed.in(Meters));
     }
 
     public void setSpeed(double speed) {
-        this.m_leadMotor.set(speed);
+        m_leadMotor.set(speed);
     }
 
     public void resetClosedLoopControl() {
-        this.setPosition(this.getPosition());
+        setPosition(getPosition());
     }
 
     public void stop() {
-        this.m_leadMotor.setVoltage(0.0);
+        m_leadMotor.setVoltage(0.0);
     }
 
     @Logged(name = "SecondStagePose")
@@ -135,21 +135,19 @@ public class Elevator extends SubsystemBase {
         return new Pose3d(
                 0,
                 0,
-                (this.m_encoder.getPosition()
-                        / ElevatorConstants.kSecondStagePositionConversionFactor),
+                (m_encoder.getPosition() / ElevatorConstants.kSecondStagePositionConversionFactor),
                 new Rotation3d());
     }
 
     @Logged(name = "CarriagePose")
     public Pose3d getCarriagePose() {
-        return new Pose3d(0, 0, this.m_encoder.getPosition(), new Rotation3d());
+        return new Pose3d(0, 0, m_encoder.getPosition(), new Rotation3d());
     }
 
     @Override
     public void simulationPeriodic() {
-        this.m_simElevator.setInput(
-                this.m_simLeadMotor.getAppliedOutput() * RoboRioSim.getVInVoltage());
-        this.m_simElevator.update(0.02);
+        m_simElevator.setInput(m_simLeadMotor.getAppliedOutput() * RoboRioSim.getVInVoltage());
+        m_simElevator.update(0.02);
 
         // Conver the elevator's Velocity in M/s to RPM. Divide by conversion ratio to get to
         // Rotations per Second, multiple by 60 to get Rotations per Minute
@@ -158,10 +156,10 @@ public class Elevator extends SubsystemBase {
                         * 60.0
                         / ElevatorConstants.kEncoderPositionConversionFactor;
 
-        this.m_simLeadMotor.iterate(elevatorVelocityRPM, RoboRioSim.getVInVoltage(), 0.02);
+        m_simLeadMotor.iterate(elevatorVelocityRPM, RoboRioSim.getVInVoltage(), 0.02);
 
         RoboRioSim.setVInVoltage(
                 BatterySim.calculateDefaultBatteryLoadedVoltage(
-                        this.m_simElevator.getCurrentDrawAmps()));
+                        m_simElevator.getCurrentDrawAmps()));
     }
 }

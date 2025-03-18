@@ -59,7 +59,7 @@ public class RobotContainer {
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive =
             new SwerveRequest.FieldCentric()
-                    .withDeadband(this.currentDriveSpeed.in(MetersPerSecond) * 0.1)
+                    .withDeadband(currentDriveSpeed.in(MetersPerSecond) * 0.1)
                     .withRotationalDeadband(kMaxAngularRate * 0.1) // Add a 10% deadband
                     .withDriveRequestType(
                             DriveRequestType
@@ -69,7 +69,7 @@ public class RobotContainer {
     private final SwerveRequest.RobotCentric forwardStraight =
             new SwerveRequest.RobotCentric().withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
-    private final Telemetry logger = new Telemetry(this.currentDriveSpeed.in(MetersPerSecond));
+    private final Telemetry logger = new Telemetry(currentDriveSpeed.in(MetersPerSecond));
 
     /* Controllers */
     private final CommandXboxController driverController = new CommandXboxController(0);
@@ -193,7 +193,6 @@ public class RobotContainer {
                                     -leftOperatorJoystick.getY()
                                             * CoralMechanismConstants.kOverrideSpeedMultiplier),
                     wrist);
-
     private final Command controlElevator =
             Commands.run(
                     () ->
@@ -201,7 +200,6 @@ public class RobotContainer {
                                     rightOperatorJoystick.getY()
                                             * ElevatorConstants.kOverrideSpeedMultiplier),
                     elevator);
-
     private final Command wristStop =
             Commands.runOnce(
                     () -> {
@@ -209,7 +207,6 @@ public class RobotContainer {
                         wrist.resetClosedLoopControl();
                     },
                     wrist);
-
     private final Command elevatorStop =
             Commands.runOnce(
                     () -> {
@@ -218,11 +215,12 @@ public class RobotContainer {
                     },
                     elevator);
 
+    /* Drivetrain Control Commands */
     private final Command defenseMode =
             Commands.runOnce(
                     () -> {
                         boolean defenseModeOn = SmartDashboard.getBoolean("DefenseModeOn", true);
-                        this.currentDriveSpeed =
+                        currentDriveSpeed =
                                 defenseModeOn
                                         ? DriveConstants.kMediumDriveSpeed
                                         : DriveConstants.kHighDriveSpeed;
@@ -256,7 +254,7 @@ public class RobotContainer {
                             System.out.println(
                                     "[TELEOP-ASSIST] "
                                             + " Selected tag "
-                                            + this.currentAprilTag
+                                            + currentAprilTag
                                             + " for alignment");
 
                             targetPose =
@@ -273,7 +271,7 @@ public class RobotContainer {
 
                         List<Waypoint> waypoints =
                                 PathPlannerPath.waypointsFromPoses(
-                                        this.drivetrain.getState().Pose, targetPose);
+                                        drivetrain.getState().Pose, targetPose);
 
                         PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
 
@@ -290,11 +288,10 @@ public class RobotContainer {
                                         Commands.sequence(
                                                 Commands.runOnce(
                                                         () -> {
-                                                            this.leds.setMode(LEDMode.Off);
+                                                            leds.setMode(LEDMode.Off);
                                                             SmartDashboard.putBoolean(
                                                                     "TeleopAlignIndicator", false);
-                                                        },
-                                                        leds),
+                                                        }),
                                                 AutoBuilder.followPath(path),
                                                 Commands.runOnce(
                                                         () -> {
@@ -302,13 +299,12 @@ public class RobotContainer {
                                                                     "[TELEOP-ASSIST] "
                                                                             + "[LEFT]"
                                                                             + " Arrived at Pose for tag "
-                                                                            + this.currentAprilTag);
-                                                            this.currentAprilTag = 0;
+                                                                            + currentAprilTag);
+                                                            currentAprilTag = 0;
 
                                                             SmartDashboard.putBoolean(
                                                                     "TeleopAlignIndicator", true);
-                                                            this.leds.setMode(
-                                                                    LEDMode.TeleopAligned);
+                                                            leds.setMode(LEDMode.TeleopAligned);
 
                                                             CommandScheduler.getInstance()
                                                                     .schedule(
@@ -327,12 +323,9 @@ public class RobotContainer {
                                                                                                                 .setMode(
                                                                                                                         LEDMode
                                                                                                                                 .Off);
-                                                                                                    },
-                                                                                                    leds)));
-                                                        },
-                                                        leds)));
-                    },
-                    leds);
+                                                                                                    })));
+                                                        })));
+                    });
 
     private final Command alignReefRight =
             Commands.runOnce(
@@ -358,7 +351,7 @@ public class RobotContainer {
                             System.out.println(
                                     "[TELEOP-ASSIST] "
                                             + " Selected tag "
-                                            + this.currentAprilTag
+                                            + currentAprilTag
                                             + " for alignment");
 
                             targetPose =
@@ -375,7 +368,7 @@ public class RobotContainer {
 
                         List<Waypoint> waypoints =
                                 PathPlannerPath.waypointsFromPoses(
-                                        this.drivetrain.getState().Pose, targetPose);
+                                        drivetrain.getState().Pose, targetPose);
 
                         PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
 
@@ -392,11 +385,10 @@ public class RobotContainer {
                                         Commands.sequence(
                                                 Commands.runOnce(
                                                         () -> {
-                                                            this.leds.setMode(LEDMode.Off);
+                                                            leds.setMode(LEDMode.Off);
                                                             SmartDashboard.putBoolean(
                                                                     "TeleopAlignIndicator", false);
-                                                        },
-                                                        leds),
+                                                        }),
                                                 AutoBuilder.followPath(path),
                                                 Commands.runOnce(
                                                         () -> {
@@ -404,13 +396,12 @@ public class RobotContainer {
                                                                     "[TELEOP-ASSIST] "
                                                                             + "[RIGHT]"
                                                                             + " Arrived at Pose for tag "
-                                                                            + this.currentAprilTag);
-                                                            this.currentAprilTag = 0;
+                                                                            + currentAprilTag);
+                                                            currentAprilTag = 0;
 
                                                             SmartDashboard.putBoolean(
                                                                     "TeleopAlignIndicator", true);
-                                                            this.leds.setMode(
-                                                                    LEDMode.TeleopAligned);
+                                                            leds.setMode(LEDMode.TeleopAligned);
 
                                                             CommandScheduler.getInstance()
                                                                     .schedule(
@@ -424,23 +415,20 @@ public class RobotContainer {
                                                                                                                 .putBoolean(
                                                                                                                         "TeleopAlignIndicator",
                                                                                                                         false);
-                                                                                                        this
-                                                                                                                .leds
+
+                                                                                                        leds
                                                                                                                 .setMode(
                                                                                                                         LEDMode
                                                                                                                                 .Off);
-                                                                                                    },
-                                                                                                    leds)));
-                                                        },
-                                                        leds)));
-                    },
-                    leds);
+                                                                                                    })));
+                                                        })));
+                    });
 
     /* AutoLeave Command */
     private Timer autoLeaveTimer = new Timer();
     private final Command autoLeave =
             Commands.sequence(
-                            Commands.runOnce(() -> this.autoLeaveTimer.restart()),
+                            Commands.runOnce(() -> autoLeaveTimer.restart()),
                             drivetrain.applyRequest(
                                     () -> forwardStraight.withVelocityX(MetersPerSecond.of(0.5))))
                     .onlyWhile(() -> !autoLeaveTimer.hasElapsed(2));
@@ -459,25 +447,6 @@ public class RobotContainer {
         NamedCommands.registerCommand("GoTo L3", gotoL3);
         NamedCommands.registerCommand("GoTo L4", gotoL4);
 
-        // NamedCommands.registerCommand("CoralIntake", setCoralIntaking);
-        // NamedCommands.registerCommand("CoralOuttake", setCoralOuttaking);
-        // NamedCommands.registerCommand("CoralHolding", genCoralHoldingCommand);
-        // NamedCommands.registerCommand("CoralOff", genCoralOffCommand);
-        // NamedCommands.registerCommand("WaitForCoral", waitForCoral);
-
-        // NamedCommands.registerCommand("ElevatorBottom", elevatorSetBottom);
-        // NamedCommands.registerCommand("ElevatorL1", elevatorSetL1);
-        // NamedCommands.registerCommand("ElevatorL2", elevatorSetL2);
-        // NamedCommands.registerCommand("ElevatorL3", elevatorSetL3);
-        // NamedCommands.registerCommand("ElevatorL4", elevatorSetL4);
-        // NamedCommands.registerCommand("ElevatorCS", elevatorSetCoralStation);
-
-        // NamedCommands.registerCommand("WristL1", wristSetL1);
-        // NamedCommands.registerCommand("WristL2", wristSetL2);
-        // NamedCommands.registerCommand("WristL3", wristSetL3);
-        // NamedCommands.registerCommand("WristL4", wristSetL4);
-        // NamedCommands.registerCommand("WristCS", wristSetCoralStation);
-
         NamedCommands.registerCommand("Leave", autoLeave);
 
         autoChooser = AutoBuilder.buildAutoChooser();
@@ -492,101 +461,6 @@ public class RobotContainer {
         configureBindings();
     }
 
-    /* Coral Intake Wheel Commands */
-    //     private Command setCoralIntaking() {
-    //         return new InstantCommand(
-    //                 () -> {
-    //                     coralIntakeMotor.setCoralState(CoralState.INTAKING);
-    //                     leds.setMode(LEDMode.WaitingForCoral);
-    //                 },
-    //                 coralIntakeMotor,
-    //                 leds);
-    //     }
-
-    //     private Command setCoralOuttaking() {
-    //         return new InstantCommand(
-    //                 () -> coralIntakeMotor.setCoralState(CoralState.OUTTAKING),
-    // coralIntakeMotor);
-    //     }
-
-    //     private Command genCoralHoldingCommand() {
-    //         return new InstantCommand(
-    //                 () -> coralIntakeMotor.setCoralState(CoralState.HOLDING), coralIntakeMotor);
-    //     }
-
-    //     private Command genCoralOffCommand() {
-    //         return new InstantCommand(
-    //                 () -> {
-    //                     coralIntakeMotor.setCoralState(CoralState.OFF);
-    //                     leds.setMode(LEDMode.Off);
-    //                 },
-    //                 coralIntakeMotor,
-    //                 leds);
-    //     }
-
-    //     private Command waitForCoral =
-    //             Commands.waitUntil(() -> coralIntakeMotor.getCoralSensor().get())
-    //                     .withTimeout(Seconds.of(3.5));
-
-    /* Elevator Commands */
-    //     private Command elevatorSetBottom =
-    //             Commands.runOnce(
-    //                     () -> elevator.setPosition(ElevatorConstants.kZeroed), elevator, wrist);
-    //     private Command elevatorSetL1 =
-    //             Commands.runOnce(
-    //                     () -> elevator.setPosition(ElevatorConstants.kL1Height), elevator,
-    // wrist);
-    //     private Command elevatorSetL2 =
-    //             Commands.runOnce(
-    //                     () -> elevator.setPosition(ElevatorConstants.kL2Height), elevator,
-    // wrist);
-    //     private Command elevatorSetL3 =
-    //             Commands.runOnce(
-    //                     () -> elevator.setPosition(ElevatorConstants.kL3Height), elevator,
-    // wrist);
-    //     private Command elevatorSetL4 =
-    //             Commands.runOnce(
-    //                     () -> elevator.setPosition(ElevatorConstants.kL4Height), elevator,
-    // wrist);
-    //     private Command elevatorSetCoralStation =
-    //             Commands.runOnce(
-    //                     () -> elevator.setPosition(ElevatorConstants.kCoralStationHeight),
-    // elevator);
-
-    /* Wrist Commands */
-    //     private Command wristSetL1 =
-    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL1),
-    // wrist);
-    //     private Command wristSetL2 =
-    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL2),
-    // wrist);
-    //     private Command wristSetL3 =
-    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL3),
-    // wrist);
-    //     private Command wristSetL4 =
-    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kScoringL4),
-    // wrist);
-    //     public Command wristSetCoralStation =
-    //             Commands.runOnce(() -> wrist.setAngle(CoralMechanismConstants.kIntakingAngle),
-    // wrist);
-
-    //     private Command wristStop() {
-    //         return new InstantCommand(
-    //                 () -> {
-    //                     wrist.setAngle(wrist.getAngle());
-    //                     wrist.stop();
-    //                 },
-    //                 wrist);
-    //     }
-
-    /* Preset Commands */
-    //     private Command elevatorStop =
-    //             Commands.runOnce(
-    //                     () -> {
-    //                         elevator.setPosition(elevator.getPosition());
-    //                     },
-    //                     elevator);
-
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
@@ -596,14 +470,14 @@ public class RobotContainer {
                         () ->
                                 drive.withVelocityX(
                                                 -driverController.getLeftY()
-                                                        * this.currentDriveSpeed.in(
+                                                        * currentDriveSpeed.in(
                                                                 MetersPerSecond)) // Drive forward
                                         // with
                                         // negative Y
                                         // (forward)
                                         .withVelocityY(
                                                 -driverController.getLeftX()
-                                                        * this.currentDriveSpeed.in(
+                                                        * currentDriveSpeed.in(
                                                                 MetersPerSecond)) // Drive left with
                                         // negative X
                                         // (left)
@@ -716,40 +590,22 @@ public class RobotContainer {
         // Switch to higher speeds (defense mode)
         driverController.start().onTrue(defenseMode);
 
+        /* Automatic Control */
         leftOperatorJoystick.button(2).onTrue(intakeCoral);
         leftOperatorJoystick.button(3).onTrue(scoreCoral);
-
         leftOperatorJoystick.button(10).onTrue(gotoL1);
         leftOperatorJoystick.button(7).onTrue(gotoL2);
         leftOperatorJoystick.button(11).onTrue(gotoL3);
         leftOperatorJoystick.button(6).onTrue(gotoL4);
 
+        /* Manual Control */
         rightOperatorJoystick.button(10).onTrue(initTower);
         rightOperatorJoystick.button(10).onTrue(raiseToL1);
         rightOperatorJoystick.button(7).onTrue(raiseToL2);
         rightOperatorJoystick.button(11).onTrue(raiseToL3);
         rightOperatorJoystick.button(6).onTrue(raiseToL4);
         rightOperatorJoystick.button(8).onTrue(tiltToIntake);
-
-        // Coral Intake Motor Controls
-        // leftOperatorJoystick.button(2).onTrue(setCoralIntaking()).onFalse(genCoralHoldingCommand());
-        // leftOperatorJoystick.button(3).onTrue(setCoralOuttaking()).onFalse(genCoralOffCommand());
-
-        // // Wrist Control
-        // leftOperatorJoystick.button(10).onTrue(wristSetL1);
-        // leftOperatorJoystick.button(7).onTrue(wristSetL2);
-        // leftOperatorJoystick.button(11).onTrue(wristSetL3);
-        // leftOperatorJoystick.button(6).onTrue(wristSetL4AndStop);
-        // leftOperatorJoystick.button(8).onTrue(wristSetCoralStation);
         leftOperatorJoystick.button(1).whileTrue(controlWrist).onFalse(wristStop);
-
-        // Elevator Controls
-        // rightOperatorJoystick.button(9).onTrue(elevatorSetBottom);
-        // rightOperatorJoystick.button(10).onTrue(elevatorSetL1);
-        // rightOperatorJoystick.button(7).onTrue(elevatorSetL2);
-        // rightOperatorJoystick.button(11).onTrue(elevatorSetL3);
-        // rightOperatorJoystick.button(6).onTrue(elevatorSetL4);
-        // rightOperatorJoystick.button(8).onTrue(elevatorSetCoralStation);
         rightOperatorJoystick.button(1).whileTrue(controlElevator).onFalse(elevatorStop);
 
         // Reef Alignment

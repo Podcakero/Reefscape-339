@@ -16,19 +16,19 @@ public class CoralIntakeMotor extends SubsystemBase {
 
     /** Creates a new CoralIntakeMotor. */
     public CoralIntakeMotor() {
-        this.wheelMotor = new SparkMax(CoralMechanismConstants.kWheelMotorId, MotorType.kBrushless);
+        wheelMotor = new SparkMax(CoralMechanismConstants.kWheelMotorId, MotorType.kBrushless);
     }
 
     public void setSpeed(double speed) {
-        this.wheelMotor.set(speed);
+        wheelMotor.set(speed);
     }
 
     public DigitalInput getCoralSensor() {
-        return this.coralSensor;
+        return coralSensor;
     }
 
     public boolean isCoralDetected() {
-        return this.coralSensor.get();
+        return coralSensor.get();
     }
 
     @Override

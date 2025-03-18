@@ -78,7 +78,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void disabledInit() {
-        this.m_robotContainer.leds.setMode(LEDMode.Rainbow);
+        m_robotContainer.leds.setMode(LEDMode.Rainbow);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void disabledExit() {
-        this.m_robotContainer.leds.setMode(LEDMode.Off);
+        m_robotContainer.leds.setMode(LEDMode.Off);
     }
 
     @Override
