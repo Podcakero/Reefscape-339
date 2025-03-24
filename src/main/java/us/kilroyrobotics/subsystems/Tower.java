@@ -123,7 +123,7 @@ public class Tower extends SubsystemBase {
 
                     currentLevel = 4;
                     setState(TowerState.RAISING_TO_L4);
-                } else if (!coralIntakeMotor.isCoralDetected()) coralIntakeMotor.setSpeed(0);
+                }
                 break;
             case RAISING_TO_L1:
                 if (elevator.inPosition()) {
@@ -154,13 +154,13 @@ public class Tower extends SubsystemBase {
                 }
                 break;
             case TILTING_TO_SCORE:
-                if (wrist.inPosition()) setState(TowerState.READY_TO_SCORE_CORAL);
+                if (wrist.inPosition()) setState(TowerState.READY_TO_SCORE);
                 break;
-            case READY_TO_SCORE_CORAL:
+            case READY_TO_SCORE:
                 if (isTriggered(TowerEvent.SCORE)) {
                     coralIntakeMotor.setSpeed(CoralMechanismConstants.kWheelSpeedOuttaking);
 
-                    setState(TowerState.SCORING_CORAL);
+                    setState(TowerState.SCORING);
                 } else if ((isTriggered(TowerEvent.GOTO_L4)) && (currentLevel != 4)) {
                     elevator.setPosition(ElevatorConstants.kL4Height);
                     wrist.setAngle(CoralMechanismConstants.kScoringL4);
@@ -187,14 +187,14 @@ public class Tower extends SubsystemBase {
                     setState(TowerState.RAISING_TO_L1);
                 }
                 break;
-            case SCORING_CORAL:
+            case SCORING:
                 if (!coralIntakeMotor.isCoralDetected() || stateTimer.hasElapsed(0.3)) {
                     wrist.setAngle(CoralMechanismConstants.kIntakingAngle);
 
-                    setState(TowerState.PAUSING_AFTER_SCORING_CORAL);
+                    setState(TowerState.PAUSING_AFTER_SCORING);
                 }
                 break;
-            case PAUSING_AFTER_SCORING_CORAL:
+            case PAUSING_AFTER_SCORING:
                 if (wrist.inPosition() && stateTimer.hasElapsed(0.2)) {
                     setState(TowerState.HOMING_ELEVATOR);
                 }
