@@ -28,7 +28,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import java.util.List;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import java.util.ArrayList;
+import java.util.Arrays;
 import us.kilroyrobotics.Constants.CameraConstants;
 import us.kilroyrobotics.Constants.CoralMechanismConstants;
 import us.kilroyrobotics.Constants.DriveConstants;
@@ -118,199 +120,115 @@ public class RobotContainer {
                                             * CoralMechanismConstants.kOverrideSpeedMultiplier));
 
     /* Reef Alignment */
-    private final Command alignReefLeft =
-            Commands.runOnce(
-                    () -> {
-                        Pose2d targetPose;
+    private Command alignReef(boolean leftSide) {
+        return Commands.runOnce(
+                () -> {
+                    Pose2d targetPose;
 
-                        RawFiducial[] aprilTags =
-                                LimelightHelpers.getRawFiducials("limelight-right");
-                        if (aprilTags.length < 1)
-                            aprilTags = LimelightHelpers.getRawFiducials("limelight-left");
+                    ArrayList<RawFiducial> aprilTags =
+                            new ArrayList<>(
+                                    Arrays.asList(
+                                                    LimelightHelpers.getRawFiducials(
+                                                            "limelight-right"),
+                                                    LimelightHelpers.getRawFiducials(
+                                                            "limelight-left"))
+                                            .stream()
+                                            .flatMap(Arrays::stream)
+                                            .toList());
 
-                        if (aprilTags.length < 1) {
-                            if (currentAprilTag == 0) return;
+                    if (aprilTags.size() < 1) {
+                        if (currentAprilTag == 0) return;
 
-                            targetPose =
-                                    VisionConstants.getAlignmentPose(
-                                            currentAprilTag,
-                                            true,
-                                            DriverStation.getAlliance().orElse(Alliance.Blue));
-                        } else {
-                            RawFiducial aprilTag = aprilTags[0];
-                            currentAprilTag = aprilTag.id;
-                            System.out.println(
-                                    "[TELEOP-ASSIST] "
-                                            + " Selected tag "
-                                            + currentAprilTag
-                                            + " for alignment");
+                        targetPose =
+                                VisionConstants.getAlignmentPose(
+                                        currentAprilTag,
+                                        leftSide,
+                                        DriverStation.getAlliance().orElse(Alliance.Blue));
+                    } else {
+                        // aprilTags.sort((a, b) -> Double.compare(b.distToRobot, a.distToRobot));
 
-                            targetPose =
-                                    VisionConstants.getAlignmentPose(
-                                            aprilTag.id,
-                                            true,
-                                            DriverStation.getAlliance().orElse(Alliance.Blue));
-                        }
-
-                        if (targetPose == null) return;
-
+                        RawFiducial aprilTag = aprilTags.get(0);
+                        currentAprilTag = aprilTag.id;
                         System.out.println(
-                                "[TELEOP-ASSIST] " + "[LEFT]" + " Going to pose " + targetPose);
+                                "[TELEOP-ASSIST] "
+                                        + " Selected tag "
+                                        + this.currentAprilTag
+                                        + " for alignment");
 
-                        List<Waypoint> waypoints =
-                                PathPlannerPath.waypointsFromPoses(
-                                        drivetrain.getState().Pose, targetPose);
+                        targetPose =
+                                VisionConstants.getAlignmentPose(
+                                        aprilTag.id,
+                                        leftSide,
+                                        DriverStation.getAlliance().orElse(Alliance.Blue));
+                    }
 
-                        PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
+                    if (targetPose == null) return;
 
-                        PathPlannerPath path =
-                                new PathPlannerPath(
-                                        waypoints,
-                                        constraints,
-                                        null,
-                                        new GoalEndState(0.0, targetPose.getRotation()));
-                        path.preventFlipping = true;
+                    System.out.println(
+                            "[TELEOP-ASSIST] "
+                                    + (leftSide ? "[LEFT]" : "[RIGHT]")
+                                    + " Going to pose "
+                                    + targetPose);
 
-                        CommandScheduler.getInstance()
-                                .schedule(
-                                        Commands.sequence(
-                                                Commands.runOnce(
-                                                        () -> {
-                                                            leds.setMode(LEDMode.Off);
-                                                            SmartDashboard.putBoolean(
-                                                                    "TeleopAlignIndicator", false);
-                                                        }),
-                                                AutoBuilder.followPath(path),
-                                                Commands.runOnce(
-                                                        () -> {
-                                                            System.out.println(
-                                                                    "[TELEOP-ASSIST] "
-                                                                            + "[LEFT]"
-                                                                            + " Arrived at Pose for tag "
-                                                                            + currentAprilTag);
-                                                            currentAprilTag = 0;
+                    List<Waypoint> waypoints =
+                            PathPlannerPath.waypointsFromPoses(
+                                    this.drivetrain.getState().Pose, targetPose);
 
-                                                            SmartDashboard.putBoolean(
-                                                                    "TeleopAlignIndicator", true);
-                                                            leds.setMode(LEDMode.TeleopAligned);
+                    PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
 
-                                                            CommandScheduler.getInstance()
-                                                                    .schedule(
-                                                                            Commands.sequence(
-                                                                                    new WaitCommand(
-                                                                                            2.5),
-                                                                                    Commands
-                                                                                            .runOnce(
-                                                                                                    () -> {
-                                                                                                        SmartDashboard
-                                                                                                                .putBoolean(
-                                                                                                                        "TeleopAlignIndicator",
-                                                                                                                        false);
-                                                                                                        this
-                                                                                                                .leds
-                                                                                                                .setMode(
-                                                                                                                        LEDMode
-                                                                                                                                .Off);
-                                                                                                    })));
-                                                        })));
-                    });
+                    PathPlannerPath path =
+                            new PathPlannerPath(
+                                    waypoints,
+                                    constraints,
+                                    null,
+                                    new GoalEndState(0.0, targetPose.getRotation()));
+                    path.preventFlipping = true;
 
-    private final Command alignReefRight =
-            Commands.runOnce(
-                    () -> {
-                        Pose2d targetPose;
+                    CommandScheduler.getInstance()
+                            .schedule(
+                                    Commands.sequence(
+                                            Commands.runOnce(
+                                                    () -> {
+                                                        this.leds.setMode(LEDMode.Off);
+                                                        SmartDashboard.putBoolean(
+                                                                "TeleopAlignIndicator", false);
+                                                    }),
+                                            AutoBuilder.followPath(path),
+                                            Commands.runOnce(
+                                                    () -> {
+                                                        System.out.println(
+                                                                "[TELEOP-ASSIST] "
+                                                                        + (leftSide
+                                                                                ? "[LEFT]"
+                                                                                : "[RIGHT]")
+                                                                        + " Arrived at Pose for tag "
+                                                                        + this.currentAprilTag);
+                                                        this.currentAprilTag = 0;
 
-                        RawFiducial[] aprilTags =
-                                LimelightHelpers.getRawFiducials("limelight-right");
-                        if (aprilTags.length < 1)
-                            aprilTags = LimelightHelpers.getRawFiducials("limelight-left");
+                                                        SmartDashboard.putBoolean(
+                                                                "TeleopAlignIndicator", true);
+                                                        this.leds.setMode(LEDMode.TeleopAligned);
 
-                        if (aprilTags.length < 1) {
-                            if (currentAprilTag == 0) return;
-
-                            targetPose =
-                                    VisionConstants.getAlignmentPose(
-                                            currentAprilTag,
-                                            false,
-                                            DriverStation.getAlliance().orElse(Alliance.Blue));
-                        } else {
-                            RawFiducial aprilTag = aprilTags[0];
-                            currentAprilTag = aprilTag.id;
-                            System.out.println(
-                                    "[TELEOP-ASSIST] "
-                                            + " Selected tag "
-                                            + currentAprilTag
-                                            + " for alignment");
-
-                            targetPose =
-                                    VisionConstants.getAlignmentPose(
-                                            aprilTag.id,
-                                            false,
-                                            DriverStation.getAlliance().orElse(Alliance.Blue));
-                        }
-
-                        if (targetPose == null) return;
-
-                        System.out.println(
-                                "[TELEOP-ASSIST] " + "[RIGHT]" + " Going to pose " + targetPose);
-
-                        List<Waypoint> waypoints =
-                                PathPlannerPath.waypointsFromPoses(
-                                        drivetrain.getState().Pose, targetPose);
-
-                        PathConstraints constraints = new PathConstraints(1.5, 1.0, 0.75, 0.5);
-
-                        PathPlannerPath path =
-                                new PathPlannerPath(
-                                        waypoints,
-                                        constraints,
-                                        null,
-                                        new GoalEndState(0.0, targetPose.getRotation()));
-                        path.preventFlipping = true;
-
-                        CommandScheduler.getInstance()
-                                .schedule(
-                                        Commands.sequence(
-                                                Commands.runOnce(
-                                                        () -> {
-                                                            leds.setMode(LEDMode.Off);
-                                                            SmartDashboard.putBoolean(
-                                                                    "TeleopAlignIndicator", false);
-                                                        }),
-                                                AutoBuilder.followPath(path),
-                                                Commands.runOnce(
-                                                        () -> {
-                                                            System.out.println(
-                                                                    "[TELEOP-ASSIST] "
-                                                                            + "[RIGHT]"
-                                                                            + " Arrived at Pose for tag "
-                                                                            + currentAprilTag);
-                                                            currentAprilTag = 0;
-
-                                                            SmartDashboard.putBoolean(
-                                                                    "TeleopAlignIndicator", true);
-                                                            leds.setMode(LEDMode.TeleopAligned);
-
-                                                            CommandScheduler.getInstance()
-                                                                    .schedule(
-                                                                            Commands.sequence(
-                                                                                    new WaitCommand(
-                                                                                            2.5),
-                                                                                    Commands
-                                                                                            .runOnce(
-                                                                                                    () -> {
-                                                                                                        SmartDashboard
-                                                                                                                .putBoolean(
-                                                                                                                        "TeleopAlignIndicator",
-                                                                                                                        false);
-
-                                                                                                        leds
-                                                                                                                .setMode(
-                                                                                                                        LEDMode
-                                                                                                                                .Off);
-                                                                                                    })));
-                                                        })));
-                    });
+                                                        CommandScheduler.getInstance()
+                                                                .schedule(
+                                                                        Commands.sequence(
+                                                                                new WaitCommand(
+                                                                                        2.5),
+                                                                                Commands.runOnce(
+                                                                                        () -> {
+                                                                                            SmartDashboard
+                                                                                                    .putBoolean(
+                                                                                                            "TeleopAlignIndicator",
+                                                                                                            false);
+                                                                                            this
+                                                                                                    .leds
+                                                                                                    .setMode(
+                                                                                                            LEDMode
+                                                                                                                    .Off);
+                                                                                        })));
+                                                    })));
+                });
+    }
 
     /* AutoLeave Command */
     private final Timer autoLeaveTimer = new Timer();
@@ -328,12 +246,12 @@ public class RobotContainer {
     public RobotContainer() {
         if (Robot.isReal() && CameraConstants.kCameraEnabled) new Camera();
 
-        NamedCommands.registerCommand("Intake Coral", tower.intakeCoral);
-        NamedCommands.registerCommand("Score Coral", tower.scoreCoral);
-        NamedCommands.registerCommand("GoTo L1", tower.gotoL1);
-        NamedCommands.registerCommand("GoTo L2", tower.gotoL2);
-        NamedCommands.registerCommand("GoTo L3", tower.gotoL3);
-        NamedCommands.registerCommand("GoTo L4", tower.gotoL4);
+        NamedCommands.registerCommand("Intake Coral", towerIntakeCoral);
+        NamedCommands.registerCommand("Score Coral", towerScoreCoral);
+        NamedCommands.registerCommand("GoTo L1", towerToL1);
+        NamedCommands.registerCommand("GoTo L2", towerToL2);
+        NamedCommands.registerCommand("GoTo L3", towerToL3);
+        NamedCommands.registerCommand("GoTo L4", towerToL4);
 
         NamedCommands.registerCommand("Leave", autoLeave);
 
@@ -483,8 +401,8 @@ public class RobotContainer {
         /* Manual Control */
 
         // Reef Alignment
-        driverController.leftBumper().onTrue(alignReefLeft);
-        driverController.rightBumper().onTrue(alignReefRight);
+        driverController.leftBumper().onTrue(alignReef(true));
+        driverController.rightBumper().onTrue(alignReef(false));
     }
 
     public Command getAutonomousCommand() {
