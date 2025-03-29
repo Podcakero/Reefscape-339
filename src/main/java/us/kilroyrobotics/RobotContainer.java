@@ -29,8 +29,8 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import us.kilroyrobotics.Constants.CameraConstants;
 import us.kilroyrobotics.Constants.CoralMechanismConstants;
@@ -174,6 +174,29 @@ public class RobotContainer {
             Commands.runOnce(() -> elevator.setPosition(ElevatorConstants.kL3Height), elevator);
     private Command elevatorSetL4 =
             Commands.runOnce(() -> elevator.setPosition(ElevatorConstants.kL4Height), elevator);
+    private Timer backupTimer = new Timer();
+    private Command elevatorSetL4AndBackup =
+            Commands.parallel(
+                    elevatorSetL4,
+                    Commands.runOnce(
+                            () -> {
+                                this.backupTimer.restart();
+
+                                CommandScheduler.getInstance()
+                                        .schedule(
+                                                drivetrain
+                                                        .applyRequest(
+                                                                () ->
+                                                                        forwardStraight
+                                                                                .withVelocityX(
+                                                                                        FeetPerSecond
+                                                                                                .of(
+                                                                                                        -1)))
+                                                        .until(
+                                                                () ->
+                                                                        this.backupTimer.hasElapsed(
+                                                                                (0.25))));
+                            }));
     private Command elevatorSetCoralStation =
             Commands.runOnce(
                     () -> elevator.setPosition(ElevatorConstants.kCoralStationHeight), elevator);
@@ -215,13 +238,16 @@ public class RobotContainer {
                 () -> {
                     Pose2d targetPose;
 
-                    List<RawFiducial> aprilTags =
-                            Arrays.asList(
-                                            LimelightHelpers.getRawFiducials("limelight-right"),
-                                            LimelightHelpers.getRawFiducials("limelight-left"))
-                                    .stream()
-                                    .flatMap(Arrays::stream)
-                                    .toList();
+                    ArrayList<RawFiducial> aprilTags =
+                            new ArrayList<>(
+                                    Arrays.asList(
+                                                    LimelightHelpers.getRawFiducials(
+                                                            "limelight-right"),
+                                                    LimelightHelpers.getRawFiducials(
+                                                            "limelight-left"))
+                                            .stream()
+                                            .flatMap(Arrays::stream)
+                                            .toList());
 
                     if (aprilTags.size() < 1) {
                         if (currentAprilTag == 0) return;
@@ -232,8 +258,7 @@ public class RobotContainer {
                                         leftSide,
                                         DriverStation.getAlliance().orElse(Alliance.Blue));
                     } else {
-                        Collections.sort(
-                                aprilTags, (a, b) -> Double.compare(b.distToRobot, a.distToRobot));
+                        // aprilTags.sort((a, b) -> Double.compare(b.distToRobot, a.distToRobot));
 
                         RawFiducial aprilTag = aprilTags.get(0);
                         currentAprilTag = aprilTag.id;
@@ -478,7 +503,7 @@ public class RobotContainer {
         leftOperatorJoystick.button(10).onTrue(wristSetL1);
         leftOperatorJoystick.button(7).onTrue(wristSetL2);
         leftOperatorJoystick.button(11).onTrue(wristSetL3);
-        // leftOperatorJoystick.button(6).onTrue(wristSetL4AndStop);
+        leftOperatorJoystick.button(6).onTrue(wristSetL4);
         leftOperatorJoystick.button(8).onTrue(wristSetCoralStation);
         leftOperatorJoystick
                 .button(1)
@@ -497,7 +522,7 @@ public class RobotContainer {
         rightOperatorJoystick.button(10).onTrue(elevatorSetL1);
         rightOperatorJoystick.button(7).onTrue(elevatorSetL2);
         rightOperatorJoystick.button(11).onTrue(elevatorSetL3);
-        // rightOperatorJoystick.button(6).onTrue(elevatorSetL4);
+        rightOperatorJoystick.button(6).onTrue(elevatorSetL4AndBackup);
         rightOperatorJoystick.button(8).onTrue(elevatorSetCoralStation);
         rightOperatorJoystick
                 .button(1)
